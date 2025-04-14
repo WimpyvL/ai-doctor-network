@@ -1,27 +1,115 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FileText, CheckCircle, Plus, ChevronRight, Send, User, MessageCircle, Clock, AlertTriangle, Save, Users as UsersIcon, FlaskConical, Search as SearchIcon } from 'lucide-react'; // Added UsersIcon, FlaskConical, SearchIcon
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import ConsensusReportView from './ConsensusReportView';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 import { toast } from "sonner"; // Assuming sonner is available globally or provided via context if needed here
+import { cn } from '@/lib/utils'; // Import cn utility
 
 // --- Helper Data & Functions ---
 
-// Renamed to reflect AI Agents acting as panel members
+// Enhanced AI Agents with personalities for the Medical Minds Collective
 const allAgentsForPanel = [
-  { id: 'oncologist', name: 'Medical Oncology', color: '#4287f5', icon: '👨‍⚕️', description: 'Systemic treatments, chemotherapy' },
-  { id: 'surgeon', name: 'Surgical Oncology', color: '#42c5f5', icon: '🔪', description: 'Surgical resection assessment' },
-  { id: 'radiologist', name: 'Radiology', color: '#42f59e', icon: '🔍', description: 'Imaging interpretation' },
-  { id: 'pathologist', name: 'Pathology', color: '#a142f5', icon: '🔬', description: 'Biopsy analysis, diagnosis confirmation' },
-  { id: 'radiation', name: 'Radiation Oncology', color: '#f542c8', icon: '☢️', description: 'Radiation therapy planning' },
-  { id: 'pulmonologist', name: 'Pulmonology', color: '#f5a142', icon: '🫁', description: 'Lung function, respiratory issues' },
-  { id: 'cardiology', name: 'Cardiology', color: '#d93025', icon: '❤️', description: 'Heart and vascular conditions' },
+  { 
+    id: 'oncologist', 
+    name: 'Medical Oncology', 
+    color: '#4287f5', 
+    icon: '👨‍⚕️', 
+    description: 'Systemic treatments, chemotherapy',
+    personality: 'Compassionate and thorough, with a focus on holistic treatment approaches',
+    speechPattern: 'Balances technical terms with patient-friendly explanations',
+    gradientColors: 'from-blue-400 to-blue-600',
+    animationStyle: 'pulse'
+  },
+  { 
+    id: 'surgeon', 
+    name: 'Surgical Oncology', 
+    color: '#42c5f5', 
+    icon: '🔪', 
+    description: 'Surgical resection assessment',
+    personality: 'Decisive and direct, with a focus on actionable interventions',
+    speechPattern: 'Concise, action-oriented language with clear recommendations',
+    gradientColors: 'from-cyan-400 to-blue-500',
+    animationStyle: 'bounce'
+  },
+  { 
+    id: 'radiologist', 
+    name: 'Radiology', 
+    color: '#42f59e', 
+    icon: '🔍', 
+    description: 'Imaging interpretation',
+    personality: 'Detail-oriented and analytical, with a keen eye for subtle findings',
+    speechPattern: 'Visual descriptions with precise measurements and comparisons',
+    gradientColors: 'from-green-400 to-emerald-500',
+    animationStyle: 'pulse'
+  },
+  { 
+    id: 'pathologist', 
+    name: 'Pathology', 
+    color: '#a142f5', 
+    icon: '🔬', 
+    description: 'Biopsy analysis, diagnosis confirmation',
+    personality: 'Methodical and evidence-based, with a focus on cellular details',
+    speechPattern: 'Structured observations moving from microscopic to diagnostic conclusions',
+    gradientColors: 'from-purple-400 to-purple-600',
+    animationStyle: 'pulse'
+  },
+  { 
+    id: 'radiation', 
+    name: 'Radiation Oncology', 
+    color: '#f542c8', 
+    icon: '☢️', 
+    description: 'Radiation therapy planning',
+    personality: 'Precise and calculated, with a focus on targeted treatment',
+    speechPattern: 'Technical terminology balanced with clear treatment rationales',
+    gradientColors: 'from-pink-400 to-pink-600',
+    animationStyle: 'pulse'
+  },
+  { 
+    id: 'pulmonologist', 
+    name: 'Pulmonology', 
+    color: '#6da4d1', 
+    icon: '🫁', 
+    description: 'Lung function, respiratory issues',
+    personality: 'Calm and methodical, with a focus on respiratory patterns',
+    speechPattern: 'Clear explanations with breathing metaphors and measured pacing',
+    gradientColors: 'from-blue-200 to-blue-400',
+    animationStyle: 'breathe'
+  },
+  { 
+    id: 'cardiology', 
+    name: 'Cardiology', 
+    color: '#d93025', 
+    icon: '❤️', 
+    description: 'Heart and vascular conditions',
+    personality: 'Passionate and rhythmic, with a focus on cardiovascular dynamics',
+    speechPattern: 'Uses heart metaphors and emphasizes flow and circulation',
+    gradientColors: 'from-red-400 to-red-600',
+    animationStyle: 'heartbeat'
+  },
 ];
 
-// Renamed function
-const getAgentById = (id: string) => allAgentsForPanel.find(s => s.id === id) || { id: 'unknown', name: 'Unknown', color: '#888888', icon: '❓', description: 'Unknown Agent' };
+// Enhanced function with proper type handling
+const getAgentById = (id: string): PanelAgent => {
+  const agent = allAgentsForPanel.find(s => s.id === id);
+  if (agent) {
+    return {
+      ...agent,
+      // Ensure animationStyle is properly typed
+      animationStyle: agent.animationStyle as 'pulse' | 'bounce' | 'breathe' | 'heartbeat'
+    };
+  }
+  return { 
+    id: 'unknown', 
+    name: 'Unknown', 
+    color: '#888888', 
+    icon: '❓', 
+    description: 'Unknown Agent' 
+  };
+};
 
 // Parameter renamed
 const generateSimulatedDiscussion = (panelAgents: PanelAgent[], caseInfo: string) => {
@@ -78,7 +166,7 @@ export interface ConsensusItem {
     topic: string;
     status: 'Discussed' | 'Proposed' | 'Pending' | 'Agreed' | 'Confirmed';
     details: string;
-    agents: { id: string; color: string; initial: string }[]; // Renamed specialists -> agents
+    agents: { id: string; color: string; initial: string }[];
 }
 
 // Parameter renamed
@@ -128,20 +216,26 @@ const extractConsensusFromScript = (script: { agentId: string; content: string; 
 
 
 // --- Component Types ---
-interface PanelAgent { // Renamed interface
+interface PanelAgent { // Enhanced with personality traits
     id: string;
     name: string;
     color: string;
     icon: string;
     description: string;
+    personality?: string;
+    speechPattern?: string;
+    gradientColors?: string;
+    animationStyle?: 'pulse' | 'bounce' | 'breathe' | 'heartbeat';
 }
 interface Message {
     agentId: string;
     content: string;
     type?: 'consensus_poll' | 'summary';
 }
+// Add isPublicView prop
 interface ConsultationSetupProps {
-    onStart: (agents: PanelAgent[], caseInfo: string) => void; // Use PanelAgent
+    onStart: (agents: PanelAgent[], caseInfo: string) => void; 
+    isPublicView?: boolean;
 }
 interface ConsultationViewProps {
     agents: PanelAgent[]; // Use PanelAgent
@@ -163,10 +257,14 @@ interface TypingIndicatorProps {
 // --- Components ---
 
 // 1. Consultation Setup Component - Redesigned with Two Columns
-const ConsultationSetup: React.FC<ConsultationSetupProps> = ({ onStart }) => {
+const ConsultationSetup: React.FC<ConsultationSetupProps> = ({ onStart, isPublicView = false }) => {
+  const navigate = useNavigate(); // Initialize useNavigate
+
+  // Introduction for new users
+  const introductionText = "Welcome to the Expert Panel! This tool allows you to collaborate with AI specialists to review and discuss complex medical cases. Enter a case summary to get started.";
   const [caseDetails, setCaseDetails] = useState("55-year-old male experiencing chest pain radiating to the left arm for the past hour, with mild shortness of breath and dizziness. BP 145/90, P 92. Hx of hypertension, no prior cardiac history reported.");
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<PanelAgent[]>([]); // Use PanelAgent
+  const [suggestions, setSuggestions] = useState<PanelAgent[]>([]); 
   const [localSelectedAgents, setLocalSelectedAgents] = useState<PanelAgent[]>([]); // Use PanelAgent
   const [analysisPerformed, setAnalysisPerformed] = useState(false);
 
@@ -186,9 +284,19 @@ const ConsultationSetup: React.FC<ConsultationSetupProps> = ({ onStart }) => {
       if (caseLower.includes('lung') || caseLower.includes('breath') || caseLower.includes('pulmonary')) suggestedIds.add('pulmonologist');
       if (caseLower.includes('heart') || caseLower.includes('cardiac') || caseLower.includes('chest pain')) suggestedIds.add('cardiology');
       if (suggestedIds.size === 0) { suggestedIds.add('oncologist'); suggestedIds.add('radiologist'); }
-      const suggestedAgents = allAgentsForPanel.filter(s => suggestedIds.has(s.id)); // Use allAgentsForPanel
+      // Filter and properly type the agents
+      const suggestedAgents = allAgentsForPanel
+        .filter(s => suggestedIds.has(s.id))
+        .map(agent => ({
+          ...agent,
+          // Ensure animationStyle is properly typed
+          animationStyle: agent.animationStyle as 'pulse' | 'bounce' | 'breathe' | 'heartbeat'
+        }));
+      
       setSuggestions(suggestedAgents);
-      if (suggestedAgents.length > 0) { setLocalSelectedAgents(suggestedAgents.slice(0, Math.min(suggestedAgents.length, 2))); }
+      if (suggestedAgents.length > 0) { 
+        setLocalSelectedAgents(suggestedAgents.slice(0, Math.min(suggestedAgents.length, 2))); 
+      }
       setIsLoading(false);
       setAnalysisPerformed(true);
     }, 1500);
@@ -204,9 +312,12 @@ const ConsultationSetup: React.FC<ConsultationSetupProps> = ({ onStart }) => {
 
   return (
     // Main container for the setup view - Using flex column
-    <div className="flex flex-col h-full"> {/* Ensure parent has height */}
+    <div className="flex flex-col h-full bg-background p-4 rounded-lg shadow-lg"> {/* Changed shadow-sm to shadow-lg */}
+      {/* Introduction Removed */}
+
       {/* Two-column layout for medium screens and up */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden gap-6 md:gap-8 p-4 md:p-6">
+      {/* Adjusted padding here since the outer div now has padding */}
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden gap-6 md:gap-8"> 
 
         {/* Left Column: Intro, Case Summary, Analyze Button */}
         <div className="flex flex-col md:w-1/2 lg:w-7/12 overflow-y-auto pr-0 md:pr-4">
@@ -216,21 +327,20 @@ const ConsultationSetup: React.FC<ConsultationSetupProps> = ({ onStart }) => {
                <UsersIcon size={24} strokeWidth={1.5} />
              </div>
              <h1 className="text-xl md:text-2xl font-semibold text-gray-900">AI Expert Panel Setup</h1> {/* Updated Title */}
-          </div>
+           </div>
 
           <div className="flex flex-col flex-grow mb-4">
-            <Label htmlFor="case-summary" className="mb-1.5 text-sm font-medium text-gray-700">Patient Case Summary</Label>
-            {/* Moved descriptive paragraph here */}
-            <p className="text-xs text-gray-500 mb-2">
-              Enter patient case details below. Our AI will suggest relevant AI agents for a collaborative review in the expert panel. {/* Updated text */}
-            </p>
-            <Textarea
-              id="case-summary"
-              value={caseDetails}
-              onChange={(e) => setCaseDetails(e.target.value)}
-              placeholder="Enter patient case summary, medical history, relevant findings, and specific questions..."
-              className="flex-grow resize-none text-sm p-3 border rounded-lg min-h-[250px] md:min-h-[300px]" // Adjusted min-height
-            />
+            {/* Removed Label and description paragraph */}
+            {/* Apply wrapper style similar to ChatInput */}
+            <div className="relative rounded-xl border-2 border-gray-500 bg-white shadow-sm transition-colors duration-200 flex-grow min-h-[250px] md:min-h-[300px]"> {/* Changed border, bg */}
+              <Textarea
+                id="case-summary"
+                value={caseDetails}
+                onChange={(e) => setCaseDetails(e.target.value)}
+                placeholder="Got a patient puzzle? Plug in the details and let our AI form the ultimate medical think tank."
+                className="absolute inset-0 w-full h-full resize-none text-sm p-3 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0" // Remove default border/ring, adjust padding
+              />
+            </div>
           </div>
 
           <Button
@@ -274,14 +384,14 @@ const ConsultationSetup: React.FC<ConsultationSetupProps> = ({ onStart }) => {
                     <div
                       key={agent.id}
                       onClick={() => toggleAgent(agent)}
-                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 border ${
-                        isSelected ? 'bg-primary/10 border-primary/50 ring-1 ring-primary/30' : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 border-2 shadow-sm ${ // Added border-2, shadow-sm
+                        isSelected ? 'bg-primary/10 border-primary/50 ring-1 ring-primary/30' : 'bg-white border-gray-500 hover:bg-gray-50 hover:border-gray-400' // Changed border colors
                       }`}
                       style={{ animationDelay: `${index * 0.05}s`, opacity: 1, animationFillMode: 'forwards', animationName: 'fadeInUp' }}
                     >
                       <div
                         className="w-9 h-9 rounded-full flex items-center justify-center mr-3 text-base shrink-0"
-                        style={{ backgroundColor: `${agent.color}20`, color: agent.color }}
+                        style={{ backgroundColor: `${agent.color}10`, color: agent.color }}
                         title={agent.name}
                       >
                         {agent.icon || agent.name.substring(0, 2).toUpperCase()}
@@ -306,7 +416,7 @@ const ConsultationSetup: React.FC<ConsultationSetupProps> = ({ onStart }) => {
               allAgentsForPanel.map((agent, index) => ( // Use allAgentsForPanel
                 <div
                   key={agent.id}
-                  className={`flex items-center p-3 rounded-lg border border-gray-200 opacity-50 cursor-not-allowed`} // Grayed out and non-interactive
+                  className={`flex items-center p-3 rounded-lg border-2 border-gray-500 bg-white shadow-sm cursor-not-allowed`} // Removed opacity-50
                 >
                   <div
                     className="w-9 h-9 rounded-full flex items-center justify-center mr-3 text-base shrink-0 bg-gray-200 text-gray-500" // Gray avatar
@@ -351,7 +461,7 @@ const ConsultationSetup: React.FC<ConsultationSetupProps> = ({ onStart }) => {
           <Button
             onClick={() => onStart(localSelectedAgents, caseDetails)}
             disabled={!canStart}
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full" // Use default primary variant
           >
             Start AI Consultation ({localSelectedAgents.length})
             <ChevronRight size={18} className="ml-1.5" />
@@ -368,8 +478,12 @@ const ConsultationSetup: React.FC<ConsultationSetupProps> = ({ onStart }) => {
 const ParticipantListHeader: React.FC<ParticipantListHeaderProps> = ({ agents, activeAgentId }) => { // agents prop is PanelAgent[]
   if (!agents || agents.length === 0) return null;
   return (
-    <div className="bg-white border-b border-gray-200 px-3 py-2 sticky top-0 z-10">
-        <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+    <div className="relative bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 px-3 py-2 sticky top-0 z-10">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-5">
+            <div className="h-full w-full bg-pattern-dots"></div>
+        </div>
+        <div className="flex items-center space-x-2 overflow-x-auto pb-1 relative z-10">
              <span className="text-xs font-medium text-gray-500 shrink-0 mr-2">Participants:</span>
             {agents.map(agent => (
                 <div
@@ -378,7 +492,11 @@ const ParticipantListHeader: React.FC<ParticipantListHeaderProps> = ({ agents, a
                     className={`relative w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 transition-all duration-300 shrink-0 ${
                         activeAgentId === agent.id ? 'border-primary scale-110' : 'border-transparent scale-100'
                     }`}
-                    style={{ backgroundColor: `${agent.color}20`, color: agent.color }}
+                    style={{ 
+                        backgroundColor: `${agent.color}10`, 
+                        color: agent.color,
+                        boxShadow: activeAgentId === agent.id ? `0 0 0 2px white, 0 0 0 4px ${agent.color}15` : 'none'
+                    }}
                 >
                     {agent.icon || agent.name.substring(0,1)}
                      {activeAgentId === agent.id && (
@@ -392,54 +510,133 @@ const ParticipantListHeader: React.FC<ParticipantListHeaderProps> = ({ agents, a
 };
 
 const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
-    const agent = getAgentById(message.agentId); // Use getAgentById
+    const [selectedAction, setSelectedAction] = useState<'agree' | 'disagree' | 'more' | null>(null);
+    const agent = getAgentById(message.agentId);
     const isSystem = message.agentId === 'system';
     const isConsensus = message.type === 'consensus_poll';
     const isSummary = message.type === 'summary';
+    
+    // Base classes
     let containerClass = 'flex justify-start mb-4';
-    let bubbleClass = 'p-3 rounded-lg shadow-sm max-w-[85%] border-l-4';
+    let bubbleClass = 'p-3 rounded-lg shadow-sm max-w-[85%] border-l-4 relative overflow-hidden';
     let bgColor = 'bg-white';
     let textColor = 'text-gray-800';
     let borderColor = agent.color || '#cccccc';
+    
+    // Animation class based on agent's style
+    let animationClass = '';
+    if (!isSystem && agent.animationStyle) {
+        switch (agent.animationStyle) {
+            case 'pulse':
+                animationClass = 'animate-pulse-subtle';
+                break;
+            case 'bounce':
+                animationClass = 'hover:animate-bounce-subtle';
+                break;
+            case 'breathe':
+                animationClass = 'animate-breathe';
+                break;
+            case 'heartbeat':
+                animationClass = 'animate-heartbeat';
+                break;
+        }
+    }
+    
+    // Gradient background for agents
+    let gradientBg = '';
+    if (!isSystem && agent.gradientColors) {
+        gradientBg = `bg-gradient-to-br ${agent.gradientColors} bg-opacity-10`;
+    }
+    
+    // Special styling for system or summary messages
     if (isSystem || isSummary) {
         containerClass = 'flex justify-center mb-4';
         bgColor = 'bg-blue-50';
         textColor = 'text-blue-800';
         borderColor = '#60a5fa';
-        bubbleClass = 'p-3 rounded-lg max-w-[85%] border border-blue-200 text-center italic';
+        bubbleClass = 'p-3 rounded-lg max-w-[85%] border border-blue-200 text-center italic relative overflow-hidden';
+        gradientBg = ''; // No gradient for system messages
+        animationClass = ''; // No animation for system messages
     } else if (isConsensus) {
-         bgColor = 'bg-yellow-50';
-         borderColor = '#fbbf24';
+        bgColor = 'bg-yellow-50';
+        borderColor = '#fbbf24';
     }
-    const animationStyle = { animation: 'fadeInUp 0.4s ease-out forwards', opacity: 0 };
+    
+    const fadeInAnimation = { animation: 'fadeInUp 0.4s ease-out forwards', opacity: 0 };
+    
+    // Add personality tooltip if available
+    const personalityTooltip = agent.personality ? agent.personality : '';
+    
     return (
-        <div className={containerClass} style={animationStyle}>
-            <div className={`${bubbleClass} ${bgColor} ${textColor}`} style={{ borderLeftColor: isSystem ? 'transparent' : borderColor, borderColor: isSystem ? borderColor : '' }}>
-                 {!isSystem && (
-                     <div className="flex items-center mb-1.5">
-                        <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs shrink-0"
-                            style={{ backgroundColor: `${agent.color}20`, color: agent.color }}
-                            title={agent.name}
-                        >
-                            {agent.icon || agent.name.substring(0,1)}
+        <div className={containerClass} style={fadeInAnimation}>
+            <div 
+                className={`${bubbleClass} ${bgColor} ${textColor} ${animationClass} ${gradientBg} transition-all duration-300`} 
+                style={{ borderLeftColor: isSystem ? 'transparent' : borderColor, borderColor: isSystem ? borderColor : '' }}
+                title={personalityTooltip}
+            >
+                {/* Add subtle background pattern based on agent specialty */}
+                {!isSystem && (
+                    <div className="absolute inset-0 opacity-5">
+                        <div className="h-full w-full bg-pattern-dots"></div>
+                    </div>
+                )}
+                
+                {/* Content with improved visual hierarchy */}
+                <div className="relative z-10">
+                    {!isSystem && (
+                        <div className="flex items-center mb-1.5">
+                            <div
+                                className={`w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs shrink-0 ${animationClass}`}
+                                style={{ 
+                                    backgroundColor: `${agent.color}10`, 
+                                    color: agent.color,
+                                    boxShadow: `0 0 0 1px white, 0 0 0 2px ${agent.color}10`
+                                }}
+                                title={agent.name}
+                            >
+                                {agent.icon || agent.name.substring(0,1)}
+                            </div>
+                            <span className="text-xs font-semibold tracking-wide" style={{ color: agent.color }}>
+                                {agent.name}
+                            </span>
+                            {agent.personality && (
+                                <span className="ml-2 text-xs text-gray-400 italic truncate hidden sm:inline-block">
+                                    {agent.personality.split(',')[0]}
+                                </span>
+                            )}
                         </div>
-                        <span className="text-xs font-semibold tracking-wide" style={{ color: agent.color }}>
-                            {agent.name}
-                        </span>
-                    </div>
-                 )}
-                <p className={`text-sm leading-relaxed ${isSystem ? '' : 'pl-7'}`}>
-                    {isSummary && <FileText size={14} className="inline mr-1 mb-0.5 opacity-70"/> }
-                    {message.content}
-                </p>
-                 {isConsensus && (
-                    <div className="mt-2.5 pl-7 flex flex-wrap gap-2">
-                        <button className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-md hover:bg-green-200 transition-colors">Agree</button>
-                        <button className="text-xs bg-red-100 text-red-700 px-2.5 py-1 rounded-md hover:bg-red-200 transition-colors">Disagree</button>
-                        <button className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md hover:bg-gray-200 transition-colors">More Info</button>
-                    </div>
-                 )}
+                    )}
+                    <p className={`text-sm leading-relaxed ${isSystem ? '' : 'pl-7'}`}>
+                        {isSummary && <FileText size={14} className="inline mr-1 mb-0.5 opacity-70"/> }
+                        {message.content}
+                    </p>
+                    {isConsensus && (
+                        <div className="mt-2.5 pl-7 flex flex-wrap gap-2">
+                            <Button 
+                                variant={selectedAction === 'agree' ? 'default' : 'outline'} 
+                                size="sm" 
+                                className={cn("h-auto px-2.5 py-1 text-xs", 
+                                    selectedAction === 'agree' ? 'bg-green-600 hover:bg-green-700 text-white' : 'border-green-300 text-green-700 hover:bg-green-50 hover:text-green-800'
+                                )}
+                                onClick={() => setSelectedAction('agree')}
+                            >Agree</Button>
+                            <Button 
+                                variant={selectedAction === 'disagree' ? 'destructive' : 'outline'} 
+                                size="sm" 
+                                className={cn("h-auto px-2.5 py-1 text-xs",
+                                    selectedAction === 'disagree' ? '' : 'border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800'
+                                )}
+                                onClick={() => setSelectedAction('disagree')}
+                            >Disagree</Button>
+                            <Button 
+                                variant={selectedAction === 'more' ? 'secondary' : 'outline'} 
+                                size="sm" 
+                                className="h-auto px-2.5 py-1 text-xs"
+                                onClick={() => setSelectedAction('more')}
+                            >More Info</Button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -469,7 +666,7 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({ agentId }) => {
        <div className="flex items-center p-2 rounded-lg bg-white shadow-sm border-l-4" style={{ borderLeftColor: agent.color || '#cccccc' }}>
             <div
                 className="w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs shrink-0"
-                style={{ backgroundColor: `${agent.color}20`, color: agent.color }}
+                        style={{ backgroundColor: `${agent.color}10`, color: agent.color }}
                 title={agent.name}
             >
                  {agent.icon || agent.name.substring(0,1)}
@@ -543,21 +740,24 @@ const ConsultationView: React.FC<ConsultationViewProps> = ({ agents, caseInfo, o
       <div className="bg-white border-t border-gray-200 p-3 sticky bottom-0">
           <div className="flex justify-between items-center">
               <span className="text-xs text-gray-500 font-medium">{sessionStatus}</span>
-              {sessionStatus === 'Consultation complete.' && generatedConsensusData && (
-                  <div className="flex gap-2">
-                       <button
-                          onClick={() => onProceed(generatedConsensusData)}
-                          className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors font-medium flex items-center"
-                      >
-                          <Save size={12} className="mr-1"/>
-                          Proceed
-                      </button>
-                      <button
-                          onClick={onGoBack}
-                          className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors font-medium" // Kept blue for contrast
-                      >
-                          New Consultation
-                      </button>
+               {sessionStatus === 'Consultation complete.' && generatedConsensusData && (
+                   <div className="flex gap-2">
+                        <Button
+                           onClick={() => onProceed(generatedConsensusData)}
+                           size="sm" // Changed from xs to sm
+                           className="font-medium" // Use default primary variant
+                       >
+                           <Save size={12} className="mr-1"/>
+                           Proceed
+                       </Button>
+                       <Button
+                           onClick={onGoBack}
+                           size="sm" // Changed from xs to sm
+                           variant="secondary" // Use secondary variant
+                           className="font-medium" 
+                       >
+                           New Consultation
+                       </Button>
                   </div>
               )}
           </div>
@@ -566,11 +766,16 @@ const ConsultationView: React.FC<ConsultationViewProps> = ({ agents, caseInfo, o
   );
 };
 
+// Add isPublicView prop
+interface ExpertPanelViewProps {
+  isPublicView?: boolean;
+}
 
 // --- Main App Component (Entry Point) ---
-const ExpertPanelView: React.FC = () => { // Renamed component
+const ExpertPanelView: React.FC<ExpertPanelViewProps> = ({ isPublicView = false }) => { 
+  const navigate = useNavigate(); // Initialize navigate
   const [currentView, setCurrentView] = useState<'setup' | 'consultation' | 'report'>('setup');
-  const [selectedAgents, setSelectedAgents] = useState<PanelAgent[]>([]); // Use PanelAgent
+  const [selectedAgents, setSelectedAgents] = useState<PanelAgent[]>([]); 
   const [caseDetails, setCaseDetails] = useState('');
   const [consensusData, setConsensusData] = useState<ConsensusItem[] | null>(null); // Type uses agents property
 
@@ -586,28 +791,51 @@ const ExpertPanelView: React.FC = () => { // Renamed component
    }
 
    const handleProceedToReport = (generatedData: ConsensusItem[]) => {
+       if (isPublicView) {
+           navigate('/login');
+           toast.info('Please sign in to view the full report.');
+           return;
+       }
+       console.log("Proceeding to report with data:", generatedData);
        setConsensusData(generatedData);
        setCurrentView('report');
    }
 
    const handleCloseReport = () => {
+       console.log("Closing report view");
        handleGoBackToSetup();
    }
 
   const renderView = () => {
+    console.log("Current view:", currentView);
+    console.log("Consensus data:", consensusData);
+    
     switch (currentView) {
       case 'setup':
-        return <ConsultationSetup onStart={handleStartConsultation} />;
+        // Pass isPublicView to ConsultationSetup
+        return <ConsultationSetup onStart={handleStartConsultation} isPublicView={isPublicView} />; 
       case 'consultation':
+        // Consultation view likely doesn't need major changes for public, 
+        // as the restriction happens at the start/proceed steps.
         return (
           <ConsultationView
             agents={selectedAgents}
             caseInfo={caseDetails}
             onGoBack={handleGoBackToSetup}
-            onProceed={handleProceedToReport}
+            onProceed={handleProceedToReport} // Proceed action is handled within the function now
           />
         );
       case 'report':
+         // This view should ideally not be reachable in public mode due to the check in handleProceedToReport
+        if (isPublicView) {
+             // Fallback redirect if somehow reached
+             navigate('/login');
+             return null; 
+        }
+        if (!consensusData) {
+          console.error("No consensus data available for report view");
+          return <div>Error: No consensus data available</div>;
+        }
         return (
           <ConsensusReportView
             consensusData={consensusData}
@@ -615,6 +843,7 @@ const ExpertPanelView: React.FC = () => { // Renamed component
           />
         );
       default:
+        console.warn("Unknown view:", currentView);
         return <ConsultationSetup onStart={handleStartConsultation} />;
     }
   };
@@ -629,12 +858,41 @@ const ExpertPanelView: React.FC = () => { // Renamed component
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
-         @keyframes bounce {
-           0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
-           50% { transform: translateY(0); animation-timing-function: cubic-bezier(0,0,0.2,1); }
-         }
+        
+        @keyframes bounce {
+          0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
+          50% { transform: translateY(0); animation-timing-function: cubic-bezier(0,0,0.2,1); }
+        }
+        
+        @keyframes pulse-subtle {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.85; }
+        }
+        
+        @keyframes bounce-subtle {
+          0%, 100% { transform: translateY(-5%); }
+          50% { transform: translateY(0); }
+        }
+        
+        @keyframes breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.03); }
+        }
+        
+        @keyframes heartbeat {
+          0%, 100% { transform: scale(1); }
+          10%, 30% { transform: scale(1.02); }
+          20% { transform: scale(1.04); }
+          40%, 60% { transform: scale(1); }
+          50% { transform: scale(1.01); }
+        }
+        
         .animate-fadeInUp { animation: fadeInUp 0.4s ease-out forwards; opacity: 0; }
         .animate-bounce { animation: bounce 1s infinite; }
+        .animate-pulse-subtle { animation: pulse-subtle 2s ease-in-out infinite; }
+        .hover\:animate-bounce-subtle:hover { animation: bounce-subtle 1s ease-in-out infinite; }
+        .animate-breathe { animation: breathe 4s ease-in-out infinite; }
+        .animate-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
       `}</style>
     </> // Close fragment
   );

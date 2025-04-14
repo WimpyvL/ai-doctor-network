@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import AppLayout from '@/components/layout/AppLayout'; // Use new layout
+// Remove AppLayout import as it's already provided by the parent route
 import { TabsContainer, TabsList, TabsTrigger } from '@/components/ui/perplexity-tabs'; // Use new tabs
 import { User, Palette, Bell, Lock, Cpu } from 'lucide-react'; // Icons for tabs
 
@@ -42,8 +42,7 @@ const Settings = () => {
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto max-w-4xl px-4 py-6">
+    <div className="container mx-auto max-w-4xl px-4 py-6">
         {/* Use theme foreground */}
         <h1 className="text-2xl font-semibold text-foreground mb-6">Settings</h1> 
         
@@ -69,7 +68,6 @@ const Settings = () => {
 
         </TabsContainer>
       </div>
-    </AppLayout>
   );
 };
 

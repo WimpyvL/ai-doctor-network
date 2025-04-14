@@ -13,11 +13,13 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background hover:bg-primary/10 hover:text-primary", // Use primary green for hover
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-primary/10 hover:text-primary", // Use primary green for hover
         link: "text-primary underline-offset-4 hover:underline",
+        // New variant for solid accent button - ensure full opacity even when disabled
+        accentSolid: "bg-accent text-accent-foreground hover:bg-accent disabled:opacity-100", 
       },
       size: {
         default: "h-10 px-4 py-2",

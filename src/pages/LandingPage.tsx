@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import PublicLayout from "@/components/layout/PublicLayout";
-import HeroSection from "@/components/home/HeroSection";
-import AIAgentsSection from "@/components/home/SpecialistsSection"; 
+import MyAgents from "./MyAgents";
 import BenefitsSection from "@/components/home/BenefitsSection";
+import FeaturesSection from "@/components/home/FeaturesSection";
 import SecurityBanner from "@/components/home/SecurityBanner"; 
 import CTASection from "@/components/home/CTASection";
 import { cn } from '@/lib/utils';
@@ -11,18 +12,26 @@ import {
   FlaskConical, 
   Stethoscope, 
   Sparkles,
-  ClipboardList, 
-  NotebookPen, 
-  MessageCircle, 
-  Search as SearchIcon 
+  ClipboardList,
+  NotebookPen,
+  MessageCircle,
+  Search as SearchIcon,
+  X,
+  ArrowRight,
+  ChevronRight,
+  Users as UsersIcon,
+  Zap
 } from 'lucide-react';
 import { AgentCategory } from '@/components/agents/AgentCategoryFilters'; 
 import { Input } from '@/components/ui/input'; 
-import { Button } from '@/components/ui/button'; 
-import QuickNotes from "./QuickNotes"; 
-import Chat from "./Chat"; 
-import ExpertPanelView from "@/components/tumor-board/TumorBoardView"; 
-import { Skeleton } from "@/components/ui/skeleton"; 
+import { Button } from '@/components/ui/button';
+import MyTemplates from "./MyTemplates";
+import PublicChat from "@/components/home/PublicChat";
+import ExpertPanelView from "@/components/tumor-board/TumorBoardView";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from 'react-router-dom';
+import { PicassoIllustration } from '@/components/illustrations/PicassoIllustration';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Define type for filter/tool items
 type FilterItem = {
@@ -34,25 +43,27 @@ type FilterItem = {
 
 // Filter/tool data
 const filterCategories: FilterItem[] = [
-  { id: 'all', label: 'All AI Agents', icon: Sparkles, type: 'filter' },
-  { id: 'expert_panel', label: 'Expert Panel', icon: ClipboardList, type: 'tool' }, 
-  { id: 'quick_notes', label: 'Quick Notes', icon: NotebookPen, type: 'tool' },
-  // { id: 'chat', label: 'Chat', icon: MessageCircle, type: 'tool' }, // Removed Chat tool from landing
-  { id: 'med_students', label: 'Med Students', icon: GraduationCap, type: 'filter' },
-  { id: 'nursing', label: 'Nursing', icon: Stethoscope, type: 'filter' },
-  { id: 'research', label: 'Research Mode', icon: FlaskConical, type: 'filter' }, 
+  { id: 'all', label: 'All Specialists', icon: Sparkles, type: 'filter' },
+  { id: 'expert_panel', label: 'Expert Panel', icon: ClipboardList, type: 'tool' },
+  { id: 'quick_notes', label: 'Quick Notes', icon: Zap, type: 'tool' },
+  { id: 'cardiology', label: 'Cardiology', icon: GraduationCap, type: 'filter' },
+  { id: 'neurology', label: 'Neurology', icon: Stethoscope, type: 'filter' },
+  { id: 'oncology', label: 'Oncology', icon: FlaskConical, type: 'filter' },
 ];
 
-
 const LandingPage = () => {
+  const navigate = useNavigate();
+  const { colorTheme } = useTheme();
   const [activeFilter, setActiveFilter] = useState<AgentCategory | 'all'>('all'); 
-  const [activeTool, setActiveTool] = useState<string | null>(null); 
+  const [activeTool, setActiveTool] = useState<string | null>('ask_ai'); // Default to 'ask_ai'
   const [isToolLoading, setIsToolLoading] = useState(false); 
   const [landingSearchTerm, setLandingSearchTerm] = useState(''); 
+  const [showPreview, setShowPreview] = useState(false);
 
-  useEffect(() => {
-    // Preload images if needed
-  }, []);
+  // Always use classic theme gradient
+  const getGradientClass = () => {
+    return 'bg-gradient-green';
+  };
 
   const handleFilterClick = (item: FilterItem) => {
     if (item.type === 'filter') {
@@ -85,89 +96,59 @@ const LandingPage = () => {
     
     switch (activeTool) {
       case 'quick_notes':
-        return <QuickNotes />;
+        return <MyTemplates />;
       case 'expert_panel':
-        return <ExpertPanelView />; 
-      default:
-        // Pass both filter and search term to AIAgentsSection
-        return <AIAgentsSection activeFilter={activeFilter} searchTerm={landingSearchTerm} />; 
+        return <ExpertPanelView isPublicView={true} />;
+      case 'ask_ai':
+        // Don't render PublicChat here since we render it in the full-page view
+        return null;
+      default: // activeTool is null, show Specialists/MyAgents
+        return <MyAgents isPublicView={true} />; 
     }
   };
 
+  // Check if we should show the full-page chat
+  const showFullPageChat = activeTool === 'ask_ai';
+
   return (
-    <PublicLayout showHeader={true} showFooter={!activeTool}> 
+    <PublicLayout showHeader={true} showFooter={!showFullPageChat}>
       
-      <HeroSection isVisible={!activeTool && activeFilter === 'all'} /> 
+      {/* Navigation menu is now in the PublicLayout header */}
 
-      {/* Use wider container: max-w-7xl */}
-      <div className={`container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl flex flex-col flex-1`}>
-
-        {/* Filter/Tool Bar Section with Search */}
-        <div className="border-b border-border py-3 my-6 md:my-8"> {/* Use theme border */}
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2"> 
-            {/* Filter Buttons */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0"> 
-              {filterCategories.map((category) => (
-                // Increased padding, gap, icon size, text size
-                <button
-                  key={category.id}
-                  onClick={() => handleFilterClick(category)} 
-                  className={`flex flex-col items-center gap-2 p-3 min-w-[80px] sm:min-w-[90px] cursor-pointer group ${ // Increased gap, p, min-w
-                    (activeFilter === category.id && category.type === 'filter' && !activeTool) || (activeTool === category.id && category.type === 'tool')
-                      ? 'text-foreground border-b-2 border-primary' // Use theme text/primary border
-                      : 'text-muted-foreground hover:text-foreground border-b-2 border-transparent hover:border-border' // Use theme text/border
-                  }`}
-                >
-                  <category.icon
-                    size={26} // Increased icon size
-                    className={`transition-opacity ${
-                      (activeFilter === category.id && category.type === 'filter' && !activeTool) || (activeTool === category.id && category.type === 'tool')
-                       ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'
-                    }`}
-                     strokeWidth={(activeFilter === category.id && category.type === 'filter' && !activeTool) || (activeTool === category.id && category.type === 'tool') ? 2 : 1.5}
-                   />
-                   {/* Increased text size */}
-                   <span className="text-sm font-medium whitespace-nowrap">{category.label}</span> 
-                 </button>
-               ))}
-            </div>
-            {/* Search Input with Red Button */}
-            <div className="relative w-full sm:w-auto sm:max-w-xs flex items-center border border-border rounded-full overflow-hidden shadow-sm bg-card h-11 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary"> {/* Use theme border/bg, increased height */}
-              <Input
-                type="search"
-                placeholder="Search..." 
-                className="flex-grow border-none bg-transparent pl-4 pr-2 py-1.5 text-sm h-full focus:outline-none" 
-                value={landingSearchTerm}
-                onChange={(e) => setLandingSearchTerm(e.target.value)}
-              />
-              <Button type="submit" size="icon" className="w-9 h-9 rounded-full bg-red-500 hover:bg-red-600 text-white flex-shrink-0 mr-1"> {/* Increased size */}
-                 <SearchIcon size={16} /> {/* Increased icon size */}
-              </Button>
+      {showFullPageChat ? (
+        // Full-page chat view - render PublicChat directly without containers
+        <div className="flex-1">
+          <PublicChat />
+        </div>
+      ) : (
+        // Regular landing page view with containers and other sections
+        <>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl flex flex-col flex-1">
+            {/* Main Content Area with Visual Container - Explicitly White Background */}
+            <div className="bg-[#FFFFFF] shadow-md rounded-lg border border-border/30 p-6">
+              <div className={`w-full ${activeTool === null ? 'mb-6' : ''}`}>
+                {renderMainContent()}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Main Content Area */}
-        <div className={`w-full ${activeTool ? '' : 'mb-12 md:mb-16'}`}> 
-          {renderMainContent()}
-        </div>
-
-        {/* Other Landing Page Sections */}
-        {!activeTool && (
-          <>
+          
+          {/* Other Landing Page Sections */}
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="my-12 md:my-16"> 
               <BenefitsSection />
+            </div>
+            <div className="my-12 md:my-16">
+              <FeaturesSection />
             </div>
             <div className="mb-16">
               <CTASection />
             </div>
             <div className="mb-16">
-               <SecurityBanner />
+              <SecurityBanner />
             </div>
-          </>
-        )}
-
-      </div>
+          </div>
+        </>
+      )}
     </PublicLayout>
   );
 };

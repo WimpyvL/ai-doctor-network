@@ -41,6 +41,8 @@ const Navbar = ({ className }: NavbarProps) => {
       title: "Logged out",
       description: "You have been logged out successfully."
     });
+    // Navigate to the public main page
+    navigate("/");
   };
 
   return (

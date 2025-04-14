@@ -1,21 +1,35 @@
-import React from 'react';
-import AppLayout from '@/components/layout/AppLayout';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Copy, Share2, Gift, Star, Zap, Users, Mail, Linkedin, Twitter, CheckCircle } from 'lucide-react'; // Added CheckCircle
+import { Gift, Star, Zap, CheckCircle, Sparkles, PartyPopper } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import confetti from 'canvas-confetti';
 
 const Referrals = () => {
   const { toast } = useToast();
+  const [isSparkleAnimating, setIsSparkleAnimating] = useState(false);
   const referralCode = "REF123XYZ";
   const referralLink = `https://leny.ai/register?ref=${referralCode}`;
   const creditsEarned = 0;
   const successfulReferrals = 0;
+  
+  // Trigger confetti effect when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Function to trigger sparkle animation
+  const triggerSparkleAnimation = () => {
+    setIsSparkleAnimating(true);
+    setTimeout(() => setIsSparkleAnimating(false), 1000);
+  };
 
   const rewardTiers = [
     { threshold: 1, reward: "10 Credits", icon: Gift },
@@ -24,151 +38,208 @@ const Referrals = () => {
     { threshold: 10, reward: "1 Month Pro Plan Free", icon: Star },
   ];
 
-  const nextTier = rewardTiers.find(tier => tier.threshold > successfulReferrals) || rewardTiers[rewardTiers.length - 1];
-  const progressPercentage = nextTier ? (successfulReferrals / nextTier.threshold) * 100 : 100;
-
-  const handleCopyCode = () => { /* ... (same) ... */
-    navigator.clipboard.writeText(referralCode);
-    toast({ title: "Copied!", description: "Referral code copied to clipboard." });
-   };
-  const handleCopyLink = () => { /* ... (same) ... */
-    navigator.clipboard.writeText(referralLink);
-    toast({ title: "Copied!", description: "Referral link copied to clipboard." });
-   };
-  const handleShare = async () => { /* ... (same) ... */
-    const shareData = {
-      title: 'Check out Leny.ai!',
-      text: `I'm using Leny.ai to streamline my clinical workflow. Sign up with my code ${referralCode} or link and we both get free credits!`,
-      url: referralLink,
-    };
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        toast({ title: "Shared successfully!" });
-      } catch (err) {
-        if (err instanceof Error && err.name !== 'AbortError') {
-            console.error('Error sharing:', err);
-            toast({ title: "Share failed", description: err.message, variant: "destructive" });
-        }
-      }
+  // Function to show a success message
+  const showSuccess = (message: string) => {
+    toast({
+      title: "Success!",
+      description: message,
+      duration: 3000,
+    });
+    
+    // Trigger animations
+    triggerSparkleAnimation();
+    confetti({
+      particleCount: 50,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  };
+  
+  // Simple copy function
+  const copyToClipboard = (text: string, type: string) => {
+    // Try to use the clipboard API
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          showSuccess(`${type} copied to clipboard!`);
+        })
+        .catch(err => {
+          console.error('Failed to copy: ', err);
+          alert(`Please copy this ${type} manually: ${text}`);
+        });
     } else {
-      handleCopyLink();
-      toast({ title: "Link Copied", description: "Web Share not supported. Referral link copied instead." });
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showSuccess(`${type} copied to clipboard!`);
+        } else {
+          alert(`Please copy this ${type} manually: ${text}`);
+        }
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+        alert(`Please copy this ${type} manually: ${text}`);
+      }
+      
+      document.body.removeChild(textArea);
     }
-   };
+  };
 
   return (
-    <AppLayout>
-      <div className="p-4 sm:p-6 lg:p-8 space-y-8"> {/* Increased spacing */}
-        <h1 className="text-3xl font-bold text-gray-900">Referrals</h1>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+      <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 flex items-center gap-2">
+        <span>✨ Rewards & Referrals ✨</span>
+        <Sparkles 
+          size={28} 
+          className={`text-yellow-500 ${isSparkleAnimating ? 'animate-ping' : ''}`} 
+        />
+      </h1>
 
-        {/* Main Referral Card */}
-        <Card className="shadow-lg border-primary/20">
-          <CardHeader className="bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-t-lg">
-            <div className="flex items-center gap-3">
-                <Gift size={24} className="text-primary" />
-                <CardTitle className="text-xl">Refer Colleagues, Earn Rewards!</CardTitle>
+      {/* Referral Card */}
+      <div className="bg-gradient-to-r from-pink-100 via-purple-100 to-blue-100 rounded-xl shadow-lg overflow-hidden">
+        <div className="p-6 relative"> 
+          <div className="flex items-center gap-3 mb-2">
+            <PartyPopper size={28} className="text-pink-500" />
+            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">
+              Invite Friends, Get Amazing Rewards!
+            </h2>
+          </div>
+          <p className="text-base mb-8">
+            Share Leny.ai and you both get <span className="font-bold text-pink-500">10 free credits</span> when they sign up!
+          </p>
+          
+          {/* Code Section */}
+          <div className="mb-6">
+            <p className="text-center text-purple-700 mb-2">Your Magic Code 🪄</p>
+            <div className="bg-white/80 rounded-lg p-4 mb-2 text-center">
+              <p className="text-xl font-mono font-bold text-purple-700">{referralCode}</p>
             </div>
-            <CardDescription className="text-base pt-1"> {/* Increased font size */}
-              Share Leny.ai and you both get <span className="font-semibold text-primary">10 free credits</span> when they sign up using your link or code.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 grid md:grid-cols-2 gap-6">
-            {/* Left Side: Code/Link */}
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="referralCode" className="text-sm font-medium">Your Referral Code</Label>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Input id="referralCode" value={referralCode} readOnly className="bg-muted font-mono text-sm h-10" />
-                  <Button variant="outline" size="icon" onClick={handleCopyCode} aria-label="Copy code" className="h-10 w-10">
-                    <Copy size={16} />
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="referralLink" className="text-sm font-medium">Your Referral Link</Label>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Input id="referralLink" value={referralLink} readOnly className="bg-muted text-sm h-10" />
-                  <Button variant="outline" size="icon" onClick={handleCopyLink} aria-label="Copy link" className="h-10 w-10">
-                    <Copy size={16} />
-                  </Button>
-                </div>
-              </div>
+            <p className="text-xs text-center text-purple-500 mb-2">👇 Click the button below to copy your code 👇</p>
+            <button 
+              onClick={() => copyToClipboard(referralCode, 'Code')}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg"
+            >
+              COPY CODE
+            </button>
+          </div>
+          
+          {/* Link Section */}
+          <div className="mb-6">
+            <p className="text-center text-purple-700 mb-2">Your Magic Link ✨</p>
+            <div className="bg-white/80 rounded-lg p-4 mb-2 overflow-auto">
+              <p className="text-sm text-purple-700 break-all">{referralLink}</p>
             </div>
-            {/* Right Side: Share Buttons */}
-            <div className="space-y-3">
-               <p className="text-sm font-medium">Share directly:</p>
-               <div className="flex flex-wrap gap-2">
-                 <Button onClick={handleShare} variant="outline" className="flex-1 min-w-[120px]">
-                    <Share2 size={16} className="mr-2" /> Share Link...
-                 </Button>
-                 <Button variant="outline" size="icon" asChild aria-label="Share via Email">
-                    <a href={`mailto:?subject=${encodeURIComponent('Check out Leny.ai!')}&body=${encodeURIComponent(`I'm using Leny.ai to streamline my clinical workflow. Sign up with my code ${referralCode} or this link: ${referralLink}`)}`}>
-                      <Mail size={18} />
-                    </a>
-                 </Button>
-                 <Button variant="outline" size="icon" asChild aria-label="Share on LinkedIn">
-                   <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralLink)}`} target="_blank" rel="noopener noreferrer">
-                     <Linkedin size={18} />
-                   </a>
-                 </Button>
-                 <Button variant="outline" size="icon" asChild aria-label="Share on Twitter">
-                   <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(`Check out Leny.ai for clinical workflows! Use my referral link:`)}`} target="_blank" rel="noopener noreferrer">
-                     <Twitter size={18} />
-                   </a>
-                 </Button>
-               </div>
+            <p className="text-xs text-center text-purple-500 mb-2">👇 Click the button below to copy your link 👇</p>
+            <button 
+              onClick={() => copyToClipboard(referralLink, 'Link')}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg"
+            >
+              COPY LINK
+            </button>
+          </div>
+          
+          {/* Share Buttons */}
+          <div className="text-center">
+            <p className="text-lg font-bold text-purple-700 mb-4">Share the Magic! 🎉</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <button 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: 'Check out Leny.ai!',
+                      text: `I'm using Leny.ai to streamline my clinical workflow. Sign up with my code ${referralCode} or link and we both get free credits!`,
+                      url: referralLink,
+                    }).catch(err => {
+                      if (err.name !== 'AbortError') {
+                        copyToClipboard(referralLink, 'Link');
+                      }
+                    });
+                  } else {
+                    copyToClipboard(referralLink, 'Link');
+                  }
+                }}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-6 rounded-full"
+              >
+                SHARE NOW
+              </button>
+              
+              <button 
+                onClick={() => {
+                  window.location.href = `mailto:?subject=${encodeURIComponent('Check out Leny.ai! ✨')}&body=${encodeURIComponent(`Hey! I'm using Leny.ai and it's amazing! Sign up with my code ${referralCode} and we both get free credits! 🎉`)}`;
+                  triggerSparkleAnimation();
+                }}
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold py-3 px-6 rounded-full"
+              >
+                EMAIL
+              </button>
+              
+              <button 
+                onClick={() => {
+                  window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Just discovered Leny.ai and it\'s amazing! Join me with my referral code and we both get rewards! ✨')}`, '_blank', 'noopener,noreferrer');
+                  triggerSparkleAnimation();
+                }}
+                className="bg-gradient-to-r from-sky-500 to-blue-500 text-white font-bold py-3 px-6 rounded-full"
+              >
+                TWEET
+              </button>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats and Milestones Card */}
-        <Card>
-           <CardHeader>
-              <CardTitle className="text-lg">Your Progress & Milestones</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-               {/* Stack stats vertically by default, grid on sm+ */}
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4 text-center border-b pb-6">
-                  <div>
-                     <p className="text-3xl font-bold">{successfulReferrals}</p>
-                     <p className="text-sm text-muted-foreground">Successful Referrals</p>
-                 </div>
-                 <div>
-                    <p className="text-3xl font-bold">{creditsEarned}</p>
-                    <p className="text-sm text-muted-foreground">Credits Earned</p>
-                 </div>
-              </div>
-              <div>
-                 <h4 className="text-sm font-semibold mb-4">Referral Milestones</h4>
-                 <div className="space-y-4">
-                    {rewardTiers.map((tier, index) => (
-                       <div key={index} className="flex items-center gap-3 text-sm">
-                          <div className={`flex h-6 w-6 rounded-full items-center justify-center shrink-0 ${successfulReferrals >= tier.threshold ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
-                             {successfulReferrals >= tier.threshold ? <CheckCircle size={14} /> : <tier.icon size={14} />}
-                          </div>
-                          <div className="flex-1">
-                             <span>Refer <span className="font-medium">{tier.threshold}</span> colleague{tier.threshold > 1 ? 's' : ''}</span>
-                             <span className="block text-xs text-muted-foreground">Reward: <span className="font-medium text-primary">{tier.reward}</span></span>
-                          </div>
-                       </div>
-                    ))}
-                 </div>
-                 {nextTier && successfulReferrals < rewardTiers[rewardTiers.length - 1].threshold && ( // Show progress until last tier reached
-                    <div className="mt-6">
-                       <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                          <span>Progress to next reward ({nextTier.reward})</span>
-                          <span>{successfulReferrals}/{nextTier.threshold}</span>
-                       </div>
-                       <Progress value={progressPercentage} className="h-2" />
-                    </div>
-                 )}
-              </div>
-           </CardContent>
-        </Card>
-
+          </div>
+        </div>
       </div>
-    </AppLayout>
+
+      {/* Rewards Card */}
+      <Card className="shadow-lg border-primary/20 relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-100 to-orange-100 opacity-70"></div>
+        
+        <CardHeader className="relative z-10">
+          <div className="flex items-center gap-2">
+            <Sparkles size={24} className="text-yellow-500 animate-pulse" />
+            <CardTitle className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-500">
+              Your Reward Journey! 🏆
+            </CardTitle>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="relative z-10 space-y-6">
+          {/* Progress Display */}
+          <div className="bg-white/80 rounded-xl p-4 shadow-md border border-yellow-100 text-center">
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-3 rounded-lg">
+                <p className="text-3xl font-extrabold text-orange-500">{successfulReferrals}</p>
+                <p className="text-sm font-medium text-orange-700">Friends Invited</p>
+              </div>
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-3 rounded-lg">
+                <p className="text-3xl font-extrabold text-orange-500">{creditsEarned}</p>
+                <p className="text-sm font-medium text-orange-700">Credits Earned</p>
+              </div>
+            </div>
+            
+            {/* Milestones */}
+            <div className="space-y-3">
+              {rewardTiers.map((tier, index) => (
+                <div key={index} className={`flex items-center gap-3 p-2 rounded-lg ${successfulReferrals >= tier.threshold ? 'bg-green-50 border border-green-100' : 'bg-white/60'}`}>
+                  <div className={`flex h-8 w-8 rounded-full items-center justify-center shrink-0 ${successfulReferrals >= tier.threshold ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-500'}`}>
+                    {successfulReferrals >= tier.threshold ? <CheckCircle size={16} /> : <tier.icon size={16} />}
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-medium">{tier.threshold} Friend{tier.threshold > 1 ? 's' : ''}</span>
+                    <span className="block text-sm font-bold text-orange-600">{tier.reward}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

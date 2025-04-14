@@ -19,7 +19,7 @@ export const PageCard = ({
     <BaseCard
       {...props}
       preview={enhancedPreview} // Use the potentially enhanced preview
-      icon={<FileText size={16} className="text-perplexity-text-tertiary" />}
+      icon={<FileText size={16} className="text-muted-foreground" />} // Use standard muted-foreground
     />
   );
 };

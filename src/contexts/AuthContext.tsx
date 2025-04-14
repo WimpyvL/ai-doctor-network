@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
       
-      navigate("/agents"); // Changed redirect to /agents
+      navigate("/chat"); // Redirect to /chat to be consistent with RootHandler
       return { error: null, success: true };
     } catch (error) {
       console.error("Error signing in:", error);
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
        const { error } = await supabase.auth.signInWithOAuth({
          provider: 'google',
          options: {
-           redirectTo: window.location.origin + "/agents", // Changed redirect to /agents
+           redirectTo: window.location.origin + "/chat", // Redirect to /chat to be consistent with RootHandler
          },
        });
       
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin + "/agents", // Changed redirect to /agents
+          emailRedirectTo: window.location.origin + "/chat", // Redirect to /chat to be consistent with RootHandler
         },
       });
       

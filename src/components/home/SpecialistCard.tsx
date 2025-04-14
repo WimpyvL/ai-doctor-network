@@ -38,7 +38,7 @@ const FavoriteIcon = ({ filled }: { filled: boolean }) => (
 
 // Star Icon for Rating (used in badge and rating display)
 const StarIcon = ({ className = "h-3.5 w-3.5", filled = true }: { className?: string, filled?: boolean }) => (
-  <Star className={cn(className, filled ? "fill-primary text-primary" : "fill-gray-300 text-gray-300")} />
+  <Star className={cn(className, filled ? "fill-yellow-500 text-yellow-500" : "fill-gray-300 text-gray-300")} />
 );
 
 const AgentCard = ({ // Renamed component
@@ -50,7 +50,7 @@ const AgentCard = ({ // Renamed component
   imageUrl,
   delay,
   logoIconText = logoText.substring(0, 2),
-  logoColor = "bg-primary", // Default to primary color
+  logoColor = "bg-blue-600", // Default to classic blue color
   rating = 4.9, // Default rating
   reviewCount = 1284,
   // availability = "Available 24/7", // Removed default
@@ -82,10 +82,14 @@ const AgentCard = ({ // Renamed component
       <Card className="w-full rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white border border-gray-100 flex flex-col h-full">
         {/* Image Container */}
         <div className="relative w-full aspect-[3/2] bg-gray-100 flex-shrink-0"> {/* Added flex-shrink-0 */}
+          {/* Subtle background pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="h-full w-full bg-pattern-dots"></div>
+          </div>
           <img 
             src={imageUrl || '/placeholder.svg'}
             alt={specialty} 
-            className="absolute inset-0 w-full h-full object-cover" 
+            className="absolute inset-0 w-full h-full object-cover relative z-10" 
             onError={(e) => (e.currentTarget.src = '/placeholder.svg')}
           />
           {/* Favorite Button */}
@@ -110,11 +114,18 @@ const AgentCard = ({ // Renamed component
           {/* Logo Row */}
           <div className="flex items-center gap-2 mb-3 flex-shrink-0"> {/* Added flex-shrink-0 */}
             {logoIconText && (
-              <div className={cn(
-                "w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs text-white flex-shrink-0",
-                logoColor // Apply dynamic background color
-              )}>
-                {logoIconText}
+              <div className="relative w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs text-white flex-shrink-0 overflow-hidden">
+                {/* Subtle background pattern */}
+                <div className="absolute inset-0 opacity-5">
+                  <div className="h-full w-full bg-pattern-dots"></div>
+                </div>
+                {/* Apply dynamic background color with reduced opacity */}
+                <div className={cn(
+                  "absolute inset-0 opacity-90",
+                  logoColor // Apply dynamic background color
+                )}></div>
+                {/* Text on top */}
+                <span className="relative z-10">{logoIconText}</span>
               </div>
             )}
             <div className="font-semibold text-base truncate">{logoText}</div>

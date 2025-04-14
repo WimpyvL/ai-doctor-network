@@ -75,7 +75,7 @@ const CreateAgentPage = () => {
   };
 
   return (
-    <AppLayout>
+    // <AppLayout> // Removed AppLayout wrapper
       <div className="p-4 sm:p-6 lg:p-8">
          <Button variant="ghost" onClick={() => navigate('/my-agents')} className="mb-4 text-muted-foreground hover:text-foreground">
              <ArrowLeft className="h-4 w-4 mr-1" /> Back to My Agents
@@ -170,7 +170,7 @@ const CreateAgentPage = () => {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    // </AppLayout> // Removed AppLayout wrapper
   );
 };
 

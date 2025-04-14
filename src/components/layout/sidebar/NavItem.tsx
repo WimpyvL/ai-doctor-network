@@ -8,9 +8,10 @@ interface NavItemProps {
   icon: React.ElementType;
   label: string;
   isSubItem?: boolean; // Added optional prop for sub-items
+  hoverAccent?: boolean; // Add option to use accent color on hover for active items
 }
 
-const NavItem = ({ to, icon: Icon, label, isSubItem }: NavItemProps) => { 
+const NavItem = ({ to, icon: Icon, label, isSubItem, hoverAccent = false }: NavItemProps) => { 
   const location = useLocation();
   const isActive = location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
 
@@ -28,18 +29,29 @@ const NavItem = ({ to, icon: Icon, label, isSubItem }: NavItemProps) => {
     </>
   );
 
-  // Use refined colors: sidebar-selected for active bg, primary for active text, primary/10 for hover bg
+  // Use theme variables for active and hover states
   const linkClasses = cn(
     "flex items-center px-3 py-1.5 rounded-md group transition-colors text-sm", 
     isActive 
-      ? "bg-sidebar-selected text-sidebar-primary font-medium" // Use sidebar-specific active colors
-      : "text-perplexity-text-secondary hover:bg-primary/10 hover:text-perplexity-text-primary", // Use primary tint for hover bg
+      ? hoverAccent 
+        ? "bg-primary/10 text-primary font-medium hover:text-white hover:bg-primary" // Use theme variables
+        : "bg-primary/10 text-primary font-medium" // Use theme variables
+      : "text-gray-600 hover:bg-primary/10 hover:text-primary", // Use theme variables
     isSubItem ? "py-1 text-xs" : "" // Make sub-item text slightly smaller too
   );
 
   return (
-    <Link to={to} className={linkClasses}>
-      <Icon size={isSubItem ? 14 : 16} className="mr-3 flex-shrink-0" /> 
+    // Removed "no-underline" class to use default link behavior
+    <Link to={to} className={linkClasses}> 
+      <Icon 
+        size={isSubItem ? 14 : 16} 
+        className={cn(
+          "mr-3 flex-shrink-0",
+          isActive && hoverAccent ? "text-primary group-hover:text-white" : "", // Use theme variable
+          isActive && !hoverAccent ? "text-primary" : "", // Use theme variable
+          !isActive ? "text-muted-foreground group-hover:text-primary" : "" // Use theme variable
+        )} 
+      /> 
       <span className="truncate">{label}</span> 
     </Link>
   );

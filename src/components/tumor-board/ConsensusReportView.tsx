@@ -57,27 +57,37 @@ const ConsensusReportView: React.FC<ConsensusReportViewProps> = ({ consensusData
                     {consensusData.map((item, index) => (
                         <div
                             key={item.topic} // Assuming topic is unique for key
-                            className="bg-gray-50 border border-gray-200 rounded-lg p-4 animate-fadeInUp"
+                            className="relative bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-4 animate-fadeInUp overflow-hidden"
                             style={{ animationDelay: `${index * 0.1}s` }}
                         >
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="font-semibold text-base text-gray-900">{item.topic}</span>
-                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(item.status)}`}>
-                                    {item.status}
-                                </span>
+                            {/* Background pattern with opacity */}
+                            <div className="absolute inset-0 opacity-5">
+                                <div className="h-full w-full bg-pattern-dots"></div>
                             </div>
-                            <p className="text-sm text-gray-600 mb-3">{item.details}</p>
-                            <div className="flex flex-wrap gap-1.5">
-                                {item.specialists.map(spec => (
-                                    <div
-                                        key={spec.id}
-                                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm"
-                                        style={{ backgroundColor: spec.color }}
-                                        title={spec.id.charAt(0).toUpperCase() + spec.id.slice(1)} // Simple title from ID
-                                    >
-                                        {spec.initial}
-                                    </div>
-                                ))}
+                            {/* Content with improved visual hierarchy */}
+                            <div className="relative z-10">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="font-semibold text-base text-gray-900">{item.topic}</span>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(item.status)}`}>
+                                        {item.status}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-600 mb-3">{item.details}</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {item.agents.map(agent => (
+                                        <div
+                                            key={agent.id}
+                                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm transition-all hover:scale-110"
+                                            style={{ 
+                                                backgroundColor: agent.color,
+                                                boxShadow: `0 0 0 2px white, 0 0 0 4px ${agent.color}15`
+                                            }}
+                                            title={agent.id.charAt(0).toUpperCase() + agent.id.slice(1)} // Simple title from ID
+                                        >
+                                            {agent.initial}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     ))}

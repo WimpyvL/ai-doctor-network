@@ -9,6 +9,9 @@ import { ListChecks, Search, CheckCircle2, XCircle, Loader2, Bot, FileText as Fi
 import { format, isToday, isYesterday, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area'; // Added ScrollArea
+// EmptyState import was added in the previous step, keep it if needed later
+// import { EmptyState } from '@/components/library/EmptyState';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 // Example data structure for Agent Tasks
 interface AgentTaskItem {
@@ -52,6 +55,7 @@ const groupTasksByDate = (tasks: AgentTaskItem[]) => {
 type StatusFilter = 'all' | 'Success' | 'Failed' | 'In Progress';
 
 const Tasks = () => {
+  const navigate = useNavigate(); // Get navigate function
   const [tasks, setTasks] = useState<AgentTaskItem[]>(initialExampleTasks); // Use state if tasks can be updated/deleted
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -76,8 +80,8 @@ const Tasks = () => {
       // Use theme colors for success badge
       case 'Success': return <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200"><CheckCircle2 size={12} className="mr-1" />Success</Badge>; // Keep green for success
       case 'Failed': return <Badge variant="destructive"><XCircle size={12} className="mr-1" />Failed</Badge>;
-      // Use secondary-accent for In Progress
-      case 'In Progress': return <Badge variant="outline" className="text-secondary-accent border-secondary-accent/40"><Loader2 size={12} className="mr-1 animate-spin" />In Progress</Badge>; 
+      // Use blue for In Progress
+      case 'In Progress': return <Badge variant="outline" className="text-blue-600 border-blue-600/40"><Loader2 size={12} className="mr-1 animate-spin" />In Progress</Badge>;
       default: return <Badge variant="outline">Unknown</Badge>;
     }
   };
@@ -89,10 +93,10 @@ const Tasks = () => {
   };
 
   return (
-    <AppLayout>
+    // <AppLayout> // Removed AppLayout wrapper
       <div className="p-4 sm:p-6 lg:p-8 h-full flex flex-col">
         {/* Use theme foreground color */}
-        <h1 className="text-2xl font-semibold text-foreground mb-4">Agent Task Log</h1> 
+        <h1 className="text-2xl font-semibold text-foreground mb-4">Agent Task Log</h1>
         <p className="text-sm text-muted-foreground mb-6">
           View the history of tasks performed by AI agents.
         </p>
@@ -100,11 +104,17 @@ const Tasks = () => {
         {/* Filter and Search Row */}
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
            <div className="relative flex-1">
-             <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-             <Input type="search" placeholder="Search tasks by agent, action, context..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+             <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none" /> {/* Added pointer-events-none */}
+             <Input
+               type="search"
+               placeholder="Search tasks by agent, action, context..."
+               className="w-full rounded-full bg-muted border-border pl-10 pr-4 py-2 text-sm focus:bg-background focus:ring-1 focus:ring-primary focus:border-primary" /* Applied consistent style */
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+             />
            </div>
            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
-             <SelectTrigger className="w-full sm:w-[180px]">
+             <SelectTrigger className="w-full sm:w-[180px]"> {/* Consider standardizing select trigger style too if needed */}
                <SelectValue placeholder="Filter by status..." />
              </SelectTrigger>
              <SelectContent>
@@ -116,18 +126,18 @@ const Tasks = () => {
            </Select>
         </div>
 
-        <Card className="flex-1 flex flex-col overflow-hidden">
+        <Card className="flex-1 flex flex-col overflow-hidden shadow-sm border"> {/* Added subtle shadow and border */}
           <CardContent className="flex-1 overflow-hidden p-0">
             <ScrollArea className="h-full">
               {Object.entries(groupedTasks).map(([groupName, tasksInGroup]) => (
                 tasksInGroup.length > 0 && (
                   <div key={groupName} className="mb-2 last:mb-0">
                     {/* Increased date group header size */}
-                    <h3 className="text-sm font-semibold uppercase text-muted-foreground px-4 py-2 bg-muted/50 border-b border-t"> 
+                    <h3 className="text-sm font-semibold uppercase text-muted-foreground px-4 py-2 bg-muted/50 border-b border-t">
                       {groupName}
                     </h3>
                     {/* Use theme border color */}
-                    <div className="divide-y divide-border"> 
+                    <div className="divide-y divide-border">
                       {tasksInGroup.map((task) => (
                         /* Stack vertically by default, row on sm+ */
                         <div key={task.id} className="flex flex-col sm:flex-row sm:items-start p-4 gap-3 sm:gap-4">
@@ -138,9 +148,9 @@ const Tasks = () => {
                            {/* Main content - takes remaining space */}
                            <div className="flex-1 min-w-0">
                               {/* Increased task action size */}
-                              <p className="text-base font-medium text-foreground">{task.action}</p> 
+                              <p className="text-base font-medium text-foreground">{task.action}</p>
                               {/* Increased agent name weight */}
-                              <p className="text-xs text-muted-foreground">by <span className="font-medium">{task.agentName}</span></p> 
+                              <p className="text-xs text-muted-foreground">by <span className="font-medium">{task.agentName}</span></p>
                               {task.context && <p className="text-xs text-muted-foreground mt-1">Context: {task.context}</p>}
                            </div>
                            {/* Status/Timestamp/Link - align end on sm+, start (default) when stacked */}
@@ -163,10 +173,10 @@ const Tasks = () => {
               {filteredTasks.length === 0 && (
                  <div className="p-12 text-center">
                    {/* Use muted foreground */}
-                   <ListChecks size={48} className="mx-auto text-muted-foreground/50 mb-4" /> 
+                   <ListChecks size={48} className="mx-auto text-muted-foreground/50 mb-4" />
                    {/* Use theme foreground/muted */}
-                   <h3 className="text-lg font-medium text-foreground">No Matching Tasks Found</h3> 
-                   <p className="mt-1 text-sm text-muted-foreground"> 
+                   <h3 className="text-lg font-medium text-foreground">No Matching Tasks Found</h3>
+                   <p className="mt-1 text-sm text-muted-foreground">
                      Try adjusting your search or filters.
                    </p>
                  </div>
@@ -175,7 +185,7 @@ const Tasks = () => {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    // </AppLayout> // Removed AppLayout wrapper
   );
 };
 

@@ -150,10 +150,10 @@ const LoginForm = () => {
               </Button>
             </div>
 
-            {/* Apply Claude-like styling: dark bg, light text */}
+            {/* Use primary theme color for button */}
             <Button
               type="submit"
-              className="w-full py-6 bg-foreground text-background hover:bg-foreground/90" 
+              className="w-full py-3 bg-primary text-white hover:bg-primary/90" // Adjusted padding and colors
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign in"}

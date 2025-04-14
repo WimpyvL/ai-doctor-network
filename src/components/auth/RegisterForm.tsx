@@ -86,7 +86,7 @@ const RegisterForm = () => {
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
           <p className="text-md text-muted-foreground">
-            Enter your details to join AIDA's healthcare platform
+            Join today to reclaim your time
           </p>
         </div>
 
@@ -174,9 +174,10 @@ const RegisterForm = () => {
               </Button>
             </div>
 
+            {/* Use primary theme color for button */}
             <Button
               type="submit"
-              className="w-full py-6"
+              className="w-full py-3 bg-primary text-white hover:bg-primary/90" // Adjusted padding and colors
               disabled={isLoading}
             >
               {isLoading ? "Creating account..." : "Create account"}

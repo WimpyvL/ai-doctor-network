@@ -1,16 +1,23 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AppLayout from '@/components/layout/AppLayout'; // Use the updated layout
-// Remove Card imports if not used directly
-// import { Card, CardContent } from '@/components/ui/card'; 
+// Removed AppLayout import
+// import AppLayout from '@/components/layout/AppLayout';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// Remove Avatar imports if handled by ThreadCard
-// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; 
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button'; // Import buttonVariants
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search as SearchIcon, Trash2, Play, Pin, PinOff, ArrowUpDown, Bot } from 'lucide-react'; // Use SearchIcon alias
 import { format, isToday, isYesterday, differenceInDays } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 import { cn } from '@/lib/utils';
 import { ThreadCard } from '@/components/library/ThreadCard'; // Import the new ThreadCard
 import { EmptyState } from '@/components/library/EmptyState'; // Import EmptyState
@@ -58,13 +65,15 @@ const RecentChats = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOption>('dateDesc');
   const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [isAlertOpen, setIsAlertOpen] = useState(false); // State for dialog visibility
+  const [chatToDelete, setChatToDelete] = useState<string | null>(null); // State for targeted chat ID
   const navigate = useNavigate();
 
   // Filter and Sort Logic
   const processedChats = useMemo(() => {
     // Simulate loading on search/sort change
-    setIsLoading(true); 
-    
+    setIsLoading(true);
+
     let filtered = chats.filter(chat =>
       chat.agentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
@@ -76,7 +85,7 @@ const RecentChats = () => {
         case 'dateAsc': return a.timestamp.getTime() - b.timestamp.getTime();
         case 'nameAsc': return a.agentName.localeCompare(b.agentName);
         case 'nameDesc': return b.agentName.localeCompare(a.agentName);
-        case 'dateDesc': 
+        case 'dateDesc':
         default: return b.timestamp.getTime() - a.timestamp.getTime();
       }
     });
@@ -84,7 +93,7 @@ const RecentChats = () => {
     // Separate pinned after sorting
     const pinned = filtered.filter(chat => chat.pinned);
     const unpinned = filtered.filter(chat => !chat.pinned);
-    
+
     // Simulate loading finished
     setTimeout(() => setIsLoading(false), 300); // Short delay for visual feedback
 
@@ -96,37 +105,51 @@ const RecentChats = () => {
 
   // --- Action Handlers ---
   const handleContinueChat = (chatId: string) => { navigate(`/chat/${chatId}`); }; // Navigate to specific chat
-  const handleDeleteChat = (chatId: string) => { 
-    // Add confirmation dialog here ideally
-    setChats(prev => prev.filter(c => c.id !== chatId)); 
-    // Add API call to delete chat
+
+  // Updated handleDeleteChat to trigger the dialog
+  const handleDeleteChat = (chatId: string) => {
+    setChatToDelete(chatId);
+    setIsAlertOpen(true);
   };
-  const handleTogglePin = (chatId: string) => { 
+  const handleTogglePin = (chatId: string) => {
     setChats(prev => prev.map(c => c.id === chatId ? { ...c, pinned: !c.pinned } : c).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.timestamp.getTime() - a.timestamp.getTime())); // Keep pinned on top after toggle
     // Add API call to update pin status
   };
 
+  // Actual deletion logic (called from AlertDialog)
+  const confirmDelete = () => {
+    if (!chatToDelete) return;
+    console.log(`Confirmed delete chat ${chatToDelete}`);
+    // TODO: Add actual API call here
+    setChats(prev => prev.filter(c => c.id !== chatToDelete));
+    setChatToDelete(null); // Reset state
+    setIsAlertOpen(false); // Close dialog
+    // Optional: Add success toast
+  };
+
   // --- Render Logic ---
   return (
-    <AppLayout>
-      {/* Use container for consistent padding/width */}
-      <div className="container mx-auto max-w-4xl px-4 py-6 h-full flex flex-col"> 
-        <h1 className="text-2xl font-semibold text-perplexity-text-primary mb-4">Recent Chats</h1>
+      // AppLayout is handled by the parent route in App.tsx
+      // Use container for consistent padding/width and add background
+      <> {/* Added Fragment to wrap content and AlertDialog */}
+      <div className="container mx-auto max-w-4xl px-4 py-6 h-full flex flex-col bg-background">
+        <h1 className="text-2xl font-semibold text-foreground mb-4">Recent Chats</h1> {/* Use foreground */}
 
         {/* Search and Sort Controls - Use new styles */}
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <div className="relative flex-1">
-            <SearchIcon size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-perplexity-text-tertiary pointer-events-none" />
-            <Input 
-              type="search" 
-              placeholder="Search chat history..." 
-              className="w-full rounded-full bg-perplexity-bg-hover border-perplexity-border pl-10 pr-4 py-2 text-sm focus:bg-background focus:ring-1 focus:ring-perplexity-teal focus:border-perplexity-teal" 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
+            <SearchIcon size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none" /> {/* Use muted-foreground */}
+            <Input
+              type="search"
+              placeholder="Search chat history..."
+              className="w-full rounded-full bg-muted border-border pl-10 pr-4 py-2 text-sm focus:bg-background focus:ring-1 focus:ring-primary focus:border-primary" /* Use standard theme colors */
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as SortOption)}>
-            <SelectTrigger className="w-full sm:w-[180px] bg-background border-perplexity-border text-perplexity-text-secondary">
+            {/* Removed explicit bg, border, text classes to rely on default theme */}
+            <SelectTrigger className="w-full sm:w-[180px]">
               <ArrowUpDown size={14} className="mr-2" />
               <SelectValue placeholder="Sort by..." />
             </SelectTrigger>
@@ -149,10 +172,10 @@ const RecentChats = () => {
                 {/* Pinned Section */}
                 {processedChats.pinned.length > 0 && (
                   <div className="mb-1">
-                    <h3 className="text-xs font-semibold uppercase text-amber-700 px-3 py-1.5 bg-amber-50/50 border-b border-t border-amber-100">
+                    <h3 className="text-xs font-semibold uppercase text-amber-700 px-3 py-1.5 bg-amber-50/50 border-b border-t border-amber-100"> {/* Keep amber for pinned */}
                       Pinned
                     </h3>
-                    <div className="divide-y divide-perplexity-border">
+                    <div className="divide-y divide-border"> {/* Use standard border */}
                       {processedChats.pinned.map((chat) => (
                         <ThreadCard
                           key={chat.id}
@@ -164,8 +187,8 @@ const RecentChats = () => {
                           onDelete={() => handleDeleteChat(chat.id)}
                           pinned={chat.pinned} // Pass pinned status
                           onPinToggle={() => handleTogglePin(chat.id)} // Pass toggle handler
-                          className="group" 
-                        /> // Remove children
+                          className="group"
+                        />
                       ))}
                     </div>
                   </div>
@@ -175,10 +198,10 @@ const RecentChats = () => {
                 {Object.entries(groupedUnpinnedChats).map(([groupName, chatsInGroup]) => (
                   chatsInGroup.length > 0 && (
                     <div key={groupName} className="mb-1">
-                      <h3 className="text-xs font-semibold uppercase text-perplexity-text-tertiary px-3 py-1.5 bg-perplexity-bg-hover/50 border-b border-t border-perplexity-border">
+                      <h3 className="text-xs font-semibold uppercase text-muted-foreground px-3 py-1.5 bg-muted/50 border-b border-t border-border"> {/* Use standard theme colors */}
                         {groupName}
                       </h3>
-                      <div className="divide-y divide-perplexity-border">
+                      <div className="divide-y divide-border"> {/* Use standard border */}
                         {chatsInGroup.map((chat) => (
                            <ThreadCard
                             key={chat.id}
@@ -190,8 +213,8 @@ const RecentChats = () => {
                             onDelete={() => handleDeleteChat(chat.id)}
                             pinned={chat.pinned} // Pass pinned status
                             onPinToggle={() => handleTogglePin(chat.id)} // Pass toggle handler
-                            className="group" 
-                          /> // Remove children
+                            className="group"
+                          />
                         ))}
                       </div>
                     </div>
@@ -205,6 +228,7 @@ const RecentChats = () => {
                       description={searchTerm ? 'Try adjusting your search terms.' : 'Start a new chat to see it here.'}
                       actionLabel="Ask AI"
                       onAction={() => navigate('/')}
+                      illustrationType="chat" // Add illustration prop
                     />
                 )}
               </>
@@ -212,7 +236,26 @@ const RecentChats = () => {
           </div>
         </ScrollArea>
       </div>
-    </AppLayout>
+      {/* Confirmation Dialog */}
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the chat
+              "{chats.find(c => c.id === chatToDelete)?.agentName || 'this chat'}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setChatToDelete(null)}>Cancel</AlertDialogCancel>
+            {/* Use destructive variant for the action button */}
+            <AlertDialogAction onClick={confirmDelete} className={buttonVariants({ variant: "destructive" })}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      </> // Close Fragment
   );
 };
 

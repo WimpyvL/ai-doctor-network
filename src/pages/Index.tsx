@@ -6,18 +6,11 @@ import Chat from "./Chat";
 const Index = () => {
   
   return (
-    // Use AppLayout for the authenticated view
-    <AppLayout>
-      {/* 
-        The AppLayout already provides the main container. 
-        We render the Chat component directly.
-        Chat.tsx handles its internal layout and scrolling.
-      */}
-      {/* Add padding around the Chat component if needed */}
+      // AppLayout is handled by the parent route in App.tsx.
+      // This div wraps the Chat component, applying padding.
       <div className="h-full p-4 sm:p-6 lg:p-8 flex flex-col"> 
         <Chat /> 
       </div>
-    </AppLayout>
   );
 };
 

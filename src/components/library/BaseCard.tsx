@@ -43,7 +43,7 @@ export const BaseCard = ({
   return (
     <div 
       className={cn(
-        "group py-4 hover:bg-perplexity-bg-hover transition-colors cursor-pointer",
+        "group py-4 hover:bg-muted transition-all duration-200 cursor-pointer group-hover:scale-[1.02]", // Added scale effect and duration
         className
       )}
       onClick={onClick}

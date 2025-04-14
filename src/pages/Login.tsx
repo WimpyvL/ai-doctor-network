@@ -2,24 +2,33 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
-import PublicLayout from "@/components/layout/PublicLayout"; // Import PublicLayout
-import { Button } from "@/components/ui/button"; // Keep Button import if needed by LoginForm or links
+// Removed PublicLayout and PicassoBackground imports
+import { PicassoIllustration } from "@/components/illustrations/PicassoIllustration"; // Keep for header icon
 
 const Login = () => {
-  // State for activeFeature is no longer needed as the feature section is removed
-  // const [activeFeature, setActiveFeature] = useState(0); 
-  
-  // features array is no longer needed
-  // const features = [ ... ];
-
   return (
-    // Use PublicLayout, but hide header/footer
-    <PublicLayout showHeader={false} showFooter={false}>
-      {/* Center content */}
-      <div className="flex flex-grow items-center justify-center p-4">
-        {/* Claude-style card: light bg, rounded, no shadow, padding */}
-        <div className="w-full max-w-md bg-card rounded-lg p-8 md:p-10"> 
-          {/* Removed title */}
+    // Main container: Full height, flex, stacks vertically on mobile, row layout on medium+ screens
+    // Using a background color similar to the provided image
+    <div className="flex flex-col md:flex-row h-screen bg-[#FDFBF5]"> 
+      
+      {/* Left Column: Login Form */}
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8 md:p-12 order-2 md:order-1"> 
+        {/* Form Content Container */}
+        <div className="w-full max-w-sm"> 
+          {/* Welcome header */}
+          <div className="mb-6 text-center">
+            {/* Use primary color */}
+            <PicassoIllustration 
+              name="healing" 
+              size="md" 
+              className="text-primary mx-auto mb-4"
+            />
+            {/* Apply handwritten font to title - Use primary color */}
+            <h1 className="text-3xl font-bold tracking-tight font-handwritten text-primary">Welcome back</h1> 
+            <p className="text-sm text-muted-foreground mt-1">
+              Sign in to your account to continue
+            </p>
+          </div>
 
           <LoginForm />
 
@@ -47,7 +56,17 @@ const Login = () => {
           </p>
         </div>
       </div>
-    </PublicLayout>
+
+      {/* Right Column: Image */}
+      {/* Hidden on small screens, flex centered on medium+ */}
+      <div className="w-full md:w-1/2 hidden md:flex items-center justify-center p-8 md:p-12 order-1 md:order-2"> 
+        <img 
+          src="/illustrations/login-abstract.webp" // Updated file extension
+          alt="Abstract illustration" 
+          className="max-w-full h-auto max-h-[70vh] object-contain" // Control image size
+        />
+      </div>
+    </div>
   );
 };
 

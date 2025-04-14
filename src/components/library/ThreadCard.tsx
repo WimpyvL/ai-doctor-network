@@ -21,7 +21,7 @@ export const ThreadCard = ({
       {...props}
       pinned={pinned} // Pass down pinned status
       onPinToggle={onPinToggle} // Pass down toggle handler
-      icon={<MessageSquare size={16} className="text-perplexity-text-tertiary" />}
+      icon={<MessageSquare size={16} className="text-muted-foreground" />} // Use standard muted-foreground
     />
   );
 };

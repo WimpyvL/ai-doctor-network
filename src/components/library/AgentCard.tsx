@@ -30,7 +30,7 @@ export const AgentCard = ({
       icon={
         <Avatar className="h-8 w-8"> {/* Use Avatar for agent icon */}
           <AvatarImage src={avatarUrl} alt={props.title} />
-          <AvatarFallback className="bg-perplexity-bg-hover text-perplexity-teal"> {/* Use theme colors */}
+          <AvatarFallback className="bg-muted text-muted-foreground"> {/* Use standard theme colors */}
             <Bot size={16} /> {/* Default Bot icon */}
           </AvatarFallback>
         </Avatar>

@@ -1,13 +1,15 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import SidebarHeader from './sidebar/SidebarHeader'; // Keep using SidebarHeader
-import NavItem from './sidebar/NavItem'; // Keep using NavItem
+import SidebarHeader from './sidebar/SidebarHeader';
+import PicassoNavItem from './sidebar/PicassoNavItem';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PicassoAvatar } from '@/components/illustrations/PicassoAvatar';
+import { PicassoIllustration } from '@/components/illustrations/PicassoIllustration';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,161 +18,192 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  MessageSquare, // Ask AI / Home
-  BookOpen, // Library
-  Users, // My Agents
-  FileText, // Templates
-  Zap, // Integrations
-  Gift, // Referrals
-  List, // Tasks
+  MessageSquare,
+  BookOpen,
+  Users,
+  FileText,
+  Zap,
+  Gift,
+  List,
+  ClipboardList,
   Settings,
   LogOut,
-  Plus, // New Thread / Ask AI
-  MoreVertical, // User menu
-  Clock, // History icon (example)
+  Plus,
+  MoreVertical,
+  Clock,
+  Coffee,
+  PartyPopper,
+  Sparkles,
 } from 'lucide-react';
 
-// Define navigation items based on the new structure
-const mainNavItems = [
-  // Ask AI is handled separately now
-  { to: '/library', label: 'Library', icon: BookOpen },
-  { to: '/my-agents', label: 'My Agents', icon: Users, subItems: [
-      { to: '/tasks', label: 'My Tasks', icon: List } // Nested Task
-    ] 
-  },
-  { to: '/my-templates', label: 'Templates', icon: FileText }, // Renamed from My Templates
-  { to: '/integrations', label: 'Integrations', icon: Zap },
-  { to: '/referrals', label: 'Referrals', icon: Gift },
+interface SidebarProps {
+  className?: string;
+  isCollapsed?: boolean;
+  onMouseEnter?: () => void;
+  onToggle?: () => void; // Add toggle function prop
+}
+
+// Navigation Items
+const navItems = [
+  { to: '/chat', label: 'Ask Leny', icon: MessageSquare, subItem: { to: '/recent-chats', label: 'View all chats', icon: Clock } },
+  { to: '/my-agents', label: 'AI Agents', icon: Users, subItem: { to: '/tasks', label: 'My Tasks', icon: List } },
+  { to: '/my-templates', label: 'Smart Notes', icon: Zap },
+  { to: '/tumor-board', label: 'Expert Panel', icon: ClipboardList },
+  // Removed Rewards & Lounge from main nav
 ];
 
-// Example recent chats (replace with actual data fetching)
-const recentChats = [
-  { id: 'chat1', title: 'Cardiology Consult' },
-  { id: 'chat2', title: 'Radiology Report Review' },
-];
-
-const Sidebar = () => {
+const Sidebar = ({ className, isCollapsed = false, onMouseEnter, onToggle }: SidebarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); // Get location for active state
+  const location = useLocation();
+
+  const { toast } = useToast();
 
   const handleLogout = () => {
     signOut();
-    // Optional: Add toast notification
+    // Add toast notification
+    toast({
+      title: "Logged out",
+      description: "You have been logged out successfully."
+    });
+    // Navigate to the public main page
+    navigate("/");
+  };
+
+  // Function to render navigation items
+  const renderNavItems = (items: typeof navItems) => {
+    return items.map((item) => {
+      const isMainActive = location.pathname === item.to || 
+                          (item.to === '/chat' && location.pathname === '/chat') || 
+                          (item.to !== '/chat' && location.pathname.startsWith(item.to));
+      const isSubItemActive = item.subItem && location.pathname.startsWith(item.subItem.to);
+      const isParentActive = isMainActive || isSubItemActive;
+      const showSubItem = isParentActive && item.subItem;
+
+      return (
+        <React.Fragment key={item.to}>
+          {/* Removed check for item.topMargin as it's no longer used */}
+          <Link
+            to={item.to}
+            className={cn(
+              "flex items-center w-full font-medium group transition-all duration-200 ease-in-out mb-1 py-2",
+              isCollapsed ? "justify-center px-2" : "justify-start px-3",
+              isParentActive
+                ? "bg-primary/10 border border-primary/50 text-primary rounded-md hover:text-white hover:bg-primary hover:border-primary/50"
+                : "text-muted-foreground hover:text-primary hover:bg-transparent rounded-md"
+            )}
+            title={isCollapsed ? item.label : undefined}
+          >
+            <div className={cn("w-4 h-4", isCollapsed ? "mr-0" : "mr-2")}>
+              <item.icon size={16} className={cn(
+                isParentActive ? "text-primary group-hover:text-white" : "text-muted-foreground group-hover:text-primary",
+              )} />
+            </div>
+            {!isCollapsed && <span>{item.label}</span>}
+          </Link>
+          {showSubItem && !isCollapsed && (
+            <Link
+              to={item.subItem.to}
+              className={cn(
+                "flex items-center pl-9 pr-3 py-1.5 rounded-md text-xs font-medium group transition-all duration-200 ease-in-out mb-2",
+                isSubItemActive
+                  ? "text-primary font-semibold"
+                  : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+              )}
+            >
+              <div className="mr-2 w-3.5 h-3.5">
+                <item.subItem.icon size={14} className={cn(
+                  isSubItemActive ? "text-primary" : "text-muted-foreground",
+                  "group-hover:text-primary"
+                )} />
+              </div>
+              <span>{item.subItem.label}</span>
+            </Link>
+          )}
+        </React.Fragment>
+      );
+    });
   };
 
   return (
-    // Use new perplexity styles
-    <aside className={cn(
-      "hidden lg:flex flex-col h-screen bg-perplexity-bg-sidebar border-r border-perplexity-border transition-all duration-300 ease-in-out w-60" // Adjusted width
-    )}>
-      <SidebarHeader /> {/* Keep using the existing header */}
-
-      {/* Ask AI Button */}
-      <div className="px-3 pt-4 pb-2">
-        <Button 
-          variant="outline" 
-          className="w-full justify-start text-perplexity-text-secondary border-perplexity-border hover:bg-perplexity-bg-hover"
-          onClick={() => navigate('/')} // Navigate to home/Ask AI page
-        >
-          <Plus size={16} className="mr-2" />
-          <span>Ask AI</span>
-          {/* Optional: Add keyboard shortcut display if needed */}
-          {/* <span className="ml-auto text-xs text-perplexity-text-tertiary">⌘ K</span> */}
-        </Button>
-      </div>
+    <aside 
+      className={cn(
+        "hidden lg:flex flex-col h-screen bg-[#F4F7F5] border-r border-[#E1EAE5] transition-all duration-300 ease-in-out",
+        isCollapsed ? "w-16" : "w-60",
+        className
+      )}
+      onMouseEnter={onMouseEnter}
+    >
+      <SidebarHeader isCollapsed={isCollapsed} onToggle={onToggle} />
 
       <ScrollArea className="flex-1 px-3 py-2">
-        {/* Recent Chats Section */}
-        <div className="space-y-1 mb-3">
-          {recentChats.map((chat) => (
-            <Link 
-              key={chat.id}
-              to={`/chat/${chat.id}`} // Example route
-              className={cn(
-                "flex items-center px-3 py-1.5 rounded-md text-sm transition-colors text-perplexity-text-secondary hover:bg-perplexity-bg-hover hover:text-perplexity-text-primary",
-                location.pathname === `/chat/${chat.id}` ? "bg-perplexity-bg-active text-perplexity-teal font-medium" : ""
-              )}
-            >
-              <MessageSquare size={16} className="mr-3 flex-shrink-0" />
-              <span className="truncate">{chat.title}</span>
-            </Link>
-          ))}
-          {/* Optional: Add a "View all chats" link */}
-          <Link 
-            to="/recent-chats" // Link to the full history page
-            className="flex items-center px-3 py-1.5 rounded-md text-xs transition-colors text-perplexity-text-tertiary hover:bg-perplexity-bg-hover hover:text-perplexity-text-primary"
-          >
-            <Clock size={14} className="mr-3 flex-shrink-0" />
-            <span>View all chats</span>
-          </Link>
-        </div>
-
-        <Separator className="bg-perplexity-border my-3" />
-
-        {/* Main Navigation Section */}
-        <nav className="space-y-1">
-          {mainNavItems.map((item) => (
-            <React.Fragment key={item.to}>
-              <NavItem
-                to={item.to}
-                icon={item.icon}
-                label={item.label}
-              />
-              {/* Render nested items if they exist */}
-              {item.subItems && item.subItems.length > 0 && (
-                <div className="pl-6 space-y-1 mt-1"> {/* Indentation */}
-                  {item.subItems.map((subItem) => (
-                    <NavItem
-                      key={subItem.to}
-                      to={subItem.to}
-                      icon={subItem.icon}
-                      label={subItem.label}
-                      isSubItem={true} // Add prop for potential styling differences
-                    />
-                  ))}
-                </div>
-              )}
-            </React.Fragment>
-          ))}
+        <nav className="space-y-1 px-1 pt-2">
+          {renderNavItems(navItems)}
         </nav>
       </ScrollArea>
 
-      {/* User Profile Section */}
-      <div className="border-t border-perplexity-border p-3">
-        <div className="flex items-center">
-          <Avatar className="h-8 w-8">
-            {/* Removed user?.avatarUrl */}
-            <AvatarImage src={"/avatar-placeholder.jpg"} alt={user?.email || 'User'} /> 
-            <AvatarFallback className="bg-perplexity-bg-hover text-perplexity-text-secondary">
-              {user?.email?.substring(0, 2).toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="ml-2 overflow-hidden">
-            <p className="text-sm font-medium text-perplexity-text-primary truncate">
-              {/* Removed user?.displayName */}
-              {user?.email || 'User'} 
-            </p>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="ml-auto h-8 w-8 text-perplexity-text-secondary hover:bg-perplexity-bg-hover">
-                <MoreVertical size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48"> {/* Adjusted width */}
-              <DropdownMenuItem onSelect={() => navigate('/settings')}>
-                <Settings size={16} className="mr-2" />
-                Settings
-              </DropdownMenuItem>
-              {/* Add other user menu items here if needed */}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50">
-                <LogOut size={16} className="mr-2" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      <div className="border-t border-[#E1EAE5] p-3">
+        <div className={cn("flex items-center", isCollapsed ? "justify-center" : "")}>
+          <PicassoAvatar
+            email={user?.email || 'User'}
+            size="sm"
+            color="text-primary"
+            className="flex-shrink-0"
+          />
+          
+          {!isCollapsed && (
+            <>
+              <div className="ml-2 overflow-hidden">
+                <p className="text-sm font-medium text-[#2D3C35] truncate">
+                  {user?.email || 'User'}
+                </p>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="ml-auto h-8 w-8 text-muted-foreground font-medium hover:bg-primary/5 hover:text-primary transition-all duration-200 ease-in-out">
+                    <MoreVertical size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onSelect={() => navigate('/settings')} className="font-medium">
+                    <div className="mr-2 w-4 h-4">
+                      <PicassoIllustration
+                        name="brain"
+                        size="xs"
+                        color="text-[#5A6D64]"
+                        className="group-hover:text-primary"
+                      />
+                    </div>
+                    Settings
+                  </DropdownMenuItem>
+                  {/* Add Rewards & Lounge to Dropdown */}
+                   <DropdownMenuItem onSelect={() => navigate('/referrals')} className="font-medium">
+                     <div className="mr-2 w-4 h-4">
+                       <Sparkles size={16} className="text-[#5A6D64] group-hover:text-primary" />
+                     </div>
+                     Rewards & Referrals
+                   </DropdownMenuItem>
+                   <DropdownMenuItem onSelect={() => navigate('/doctors-lounge')} className="font-medium">
+                     <div className="mr-2 w-4 h-4">
+                       <Coffee size={16} className="text-[#5A6D64] group-hover:text-primary" />
+                     </div>
+                     Doctor's Lounge
+                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={handleLogout} className="text-red-600 font-medium focus:text-red-600 focus:bg-red-50">
+                    <div className="mr-2 w-4 h-4">
+                      <PicassoIllustration
+                        name="empty"
+                        size="xs"
+                        color="text-red-600"
+                      />
+                    </div>
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
         </div>
       </div>
     </aside>

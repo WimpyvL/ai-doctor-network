@@ -51,7 +51,7 @@ const AgentConsultationForm = ({ agent, isOpen, onClose }: AgentConsultationForm
         specialty: agent.specialty,
         description: agent.description,
         icon: agent.icon,
-        color: agent.color
+        color: '#4F46E5' // Default primary color since Agent type doesn't have color property
       };
       
       // Create a new consultation
@@ -94,13 +94,52 @@ const AgentConsultationForm = ({ agent, isOpen, onClose }: AgentConsultationForm
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Consultation with {agent.name}</DialogTitle>
-          <DialogDescription>
-            Describe the patient's symptoms for an analysis from a {agent.specialty} perspective
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
+        {/* Full-Width Avatar Background Header */}
+        <div className="relative h-40 overflow-hidden">
+          {/* Background Image */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-primary/10">
+            {agent.imageUrl && !agent.imageUrl.includes('placeholder') && (
+              <div className="absolute inset-0 opacity-20">
+                <img
+                  src={agent.imageUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent"></div>
+          
+          {/* Avatar and Info */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-4">
+            <motion.div 
+              className="w-20 h-20 rounded-full overflow-hidden border-4 border-background shadow-lg"
+              initial={{ scale: 0.8, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              transition={{ delay: 0.1, type: "spring" }}
+            >
+              <img
+                src={agent.imageUrl || '/placeholder.svg'}
+                alt={agent.name}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+            <motion.div 
+              className="flex-1"
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <DialogTitle className="text-xl font-bold">{agent.name}</DialogTitle>
+              <DialogDescription className="text-sm">
+                Describe the patient's symptoms for an analysis from a {agent.specialty} perspective
+              </DialogDescription>
+            </motion.div>
+          </div>
+        </div>
         
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">

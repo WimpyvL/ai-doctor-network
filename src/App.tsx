@@ -1,23 +1,33 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+// Remove toast components that show notifications at the bottom right
+// import { Toaster } from "@/components/ui/toaster";
+// import { Toaster as Sonner } from "@/components/ui/sonner";
+
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion"; // Removed motion import if not used directly here
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+
+// Remove toast components that show notifications at the bottom right
+// import { Toaster } from "@/components/ui/toaster";
+// import { Toaster as Sonner } from "@/components/ui/sonner";
+
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { RootHandler } from "@/components/auth/RootHandler"; // Import the new RootHandler
-// Index import might not be needed here directly if RootHandler handles it
+import { RootHandler } from "@/components/auth/RootHandler"; 
+import AppLayout from "@/components/layout/AppLayout"; // Import the main AppLayout
+import PublicLayout from "@/components/layout/PublicLayout"; // Import the PublicLayout
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 // import Dashboard from "./pages/Dashboard"; // Removed unused import
 import PatientRecords from "./pages/PatientRecords";
-import Agents from "./pages/Agents";
+// import Agents from "./pages/Agents"; // Removed import
 import Collaboration from "./pages/Collaboration";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
+import SettingsView from "./components/settings/SettingsView";
 import FollowupScheduler from "./pages/FollowupScheduler";
 // Removed FollowupMonitoring import as the page was deleted
 import Features from "./pages/Features";
@@ -28,19 +38,24 @@ import EditAIExpert from "./pages/EditAIExpert";
 import DocumentTransformer from "./pages/DocumentTransformer";
 import CollaborationHub from "./pages/CollaborationHub";
 import ExpertPanelView from "@/components/tumor-board/TumorBoardView"; // Updated import name
-import QuickNotes from "./pages/QuickNotes";
 import Chat from "./pages/Chat";
 // Import new placeholder pages
 import RecentChats from "./pages/RecentChats";
 import RecentSearches from "./pages/RecentSearches"; // This import might be unused now
 import MyAgents from "./pages/MyAgents";
-import MyTemplates from "./pages/MyTemplates"; // Updated import name
+import QuickNotes from "./pages/MyTemplates"; // Import as QuickNotes since that's the exported name
 import Integrations from "./pages/Integrations";
 import Tasks from "./pages/Tasks";
 import CreateAgentPage from "./pages/CreateAgentPage";
 import Referrals from "./pages/Referrals"; 
 import Library from "./pages/Library"; 
-import LandingPage from "./pages/LandingPage"; // Import the new LandingPage
+import LandingPage from "./pages/LandingPage";
+import PublicChat from "@/components/home/PublicChat"; // Import PublicChat component
+import AgentDetailPage from "./pages/AgentDetailPage"; 
+import CreateTemplatePage from "./pages/CreateTemplatePage"; 
+import EditTemplatePage from "./pages/EditTemplatePage"; // Import edit template page
+import DoctorsLounge from "./pages/DoctorsLounge"; // Import Doctor's Lounge page
+import CardComparisonPage from "./pages/CardComparisonPage"; // Import card comparison page
 
 // Import the new page for security logs if needed
 // import SecurityLogs from "./pages/SecurityLogs";
@@ -50,11 +65,13 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
+      {/* Removed toast components that were showing intrusive notifications */}
+      {/* <Toaster /> */}
+      {/* <Sonner /> */}
       <BrowserRouter>
         <AuthProvider>
-          <AnimatePresence mode="wait">
+          <ThemeProvider>
+            <AnimatePresence mode="wait">
             <Routes>
               {/* Public Routes - Login, Register, etc. */}
               {/* Removed /welcome route */}
@@ -62,108 +79,64 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/features" element={<Features />} /> 
               <Route path="/about" element={<AboutUs />} /> 
+              
+              {/* Public access to AI agents, smart notes, expert panel, and chat */}
+              <Route path="/my-agents" element={<PublicLayout><MyAgents isPublicView={true} /></PublicLayout>} />
+              <Route path="/my-templates" element={<PublicLayout><QuickNotes isPublicView={true} /></PublicLayout>} />
+              <Route path="/tumor-board" element={<PublicLayout><ExpertPanelView isPublicView={true} /></PublicLayout>} />
+              <Route path="/chat" element={<PublicLayout><PublicChat /></PublicLayout>} />
 
-              {/* Root Route - Handled by RootHandler */}
+              {/* Root Route - Handled by RootHandler (Redirects to /login or /chat) */}
               <Route path="/" element={<RootHandler />} /> 
 
-              {/* Other Authenticated Routes */}
+              {/* Authenticated Routes using AppLayout */}
               <Route 
-                path="/patients" 
                 element={
                   <ProtectedRoute>
-                    <PatientRecords />
+                    <AppLayout>
+                      {/* Outlet will render child routes */}
+                    </AppLayout>
                   </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/agents" 
-                element={
-                  <ProtectedRoute>
-                    <Agents />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/collaboration" 
-                element={
-                  <ProtectedRoute>
-                    <Collaboration />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/analytics" 
-                element={
-                  <ProtectedRoute>
-                    <Analytics />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/settings/*" 
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/followup-scheduler" 
-                element={
-                  <ProtectedRoute>
-                    <FollowupScheduler />
-                  </ProtectedRoute>
-                } 
-              />
-              {/* Removed Followup Monitoring route */}
-              <Route 
-                path="/notifications" 
-                element={
-                  <ProtectedRoute>
-                    <Notifications />
-                  </ProtectedRoute>
-                } 
-              />
-              {/* AI Experts routes removed */}
-              {/* Route for the new Document Transformer tool */}
-              <Route 
-                path="/tools/document-transformer" 
-                element={
-                  <ProtectedRoute>
-                    <DocumentTransformer />
-                  </ProtectedRoute>
-                } 
-              />
-              {/* Route for the new Collaboration Hub */}
-              <Route 
-                path="/collaboration-hub" 
-                element={
-                  <ProtectedRoute>
-                    <CollaborationHub />
-                  </ProtectedRoute>
-                } 
-              />
-              {/* Route for the new Expert Panel view - Made public */}
-              <Route 
-                path="/tumor-board" // Keeping path for now, can rename later if needed
-                element={<ExpertPanelView />} // Use renamed component
-              />
-              {/* Add routes for new placeholder pages */}
-              <Route path="/recent-chats" element={<ProtectedRoute><RecentChats /></ProtectedRoute>} />
-              {/* Removed /recent-searches route */}
-              <Route path="/my-agents" element={<ProtectedRoute><MyAgents /></ProtectedRoute>} />
-              <Route path="/my-templates" element={<ProtectedRoute><MyTemplates /></ProtectedRoute>} /> {/* Updated path and element */}
-              <Route path="/integrations" element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
-              <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
-              <Route path="/agents/create" element={<ProtectedRoute><CreateAgentPage /></ProtectedRoute>} />
-              <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} /> {/* Add route for referrals page */}
-              <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} /> {/* Add route for Library page */}
-              {/* Removed route for Quick Notes (now shown in Index) */}
-              {/* Removed route for Chat (now shown in Index) */}
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                }
+              >
+                {/* Default authenticated route (e.g., redirect '/' here if RootHandler didn't) */}
+                {/* <Route index element={<Navigate to="/chat" replace />} /> */} 
+                
+                {/* Define child routes here. They will render inside AppLayout */}
+                <Route path="/patients" element={<PatientRecords />} />
+                <Route path="/agents" element={<Navigate to="/my-agents" replace />} /> {/* Redirect */}
+                <Route path="/collaboration" element={<Collaboration />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/settings/*" element={<SettingsView />} />
+                <Route path="/followup-scheduler" element={<FollowupScheduler />} />
+                <Route path="/notifications" element={<Notifications />} />
+                <Route path="/tools/document-transformer" element={<DocumentTransformer />} />
+                <Route path="/collaboration-hub" element={<CollaborationHub />} />
+                {/* Expert Panel needs protection if it's not public */}
+                <Route path="/tumor-board" element={<ExpertPanelView />} /> 
+                <Route path="/recent-chats" element={<RecentChats />} />
+                <Route path="/my-agents" element={<MyAgents />} />
+                <Route path="/my-templates" element={<QuickNotes />} />
+                <Route path="/quick-notes" element={<Navigate to="/my-templates" replace />} /> {/* Redirect to MyTemplates */}
+                <Route path="/integrations" element={<Integrations />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/agents/create" element={<CreateAgentPage />} />
+                <Route path="/referrals" element={<Referrals />} />
+                <Route path="/library" element={<Library />} />
+                <Route path="/chat" element={<Chat />} /> 
+                <Route path="/agents/:agentId" element={<AgentDetailPage />} /> {/* Added agent detail route */}
+                <Route path="/templates/create" element={<CreateTemplatePage />} /> {/* Added create template route */}
+                <Route path="/templates/:templateId/edit" element={<EditTemplatePage />} /> {/* Added edit template route */}
+                <Route path="/doctors-lounge" element={<DoctorsLounge />} /> {/* Added Doctor's Lounge route */}
+                <Route path="/card-comparison" element={<CardComparisonPage />} /> {/* Added Card Comparison route */}
+                {/* Add other authenticated routes as needed */}
+              </Route>
+
+              {/* Catch-all Not Found Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </AnimatePresence>
+            </AnimatePresence>
+          </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -9,6 +9,12 @@ import {
 import { Agent } from "../types/agentTypes";
 import { AgentCategory } from "../AgentCategoryFilters"; // Import AgentCategory type
 
+// Import images directly
+import femaleDoctorScrubs from '/public/agents/female-doctor-scrubs.jpg';
+import maleDoctorLabcoat from '/public/agents/male-doctor-labcoat.jpg';
+import femaleSurgeonCap from '/public/agents/female-surgeon-cap.jpg';
+import placeholderSvg from '/public/placeholder.svg';
+
 // Helper function to generate simple IDs
 const generateId = (name: string): string => {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15);
@@ -37,46 +43,95 @@ const colors = [
 let colorIndex = 0;
 const getNextColor = () => colors[colorIndex++ % colors.length];
 
-// Existing Agents - Explicitly type the category
+// Existing Agents - Enhanced with personality traits
 const existingAgents: Agent[] = [
   {
     id: "cardio", name: "CardioAssist", specialty: "Cardiology", 
     description: "Expert in cardiovascular conditions and treatments.", icon: Heart, category: 'general' as 'general',
-    capabilities: ["ECG analysis and interpretation", "Cardiovascular risk assessment", "Treatment recommendations for heart conditions", "Post-operative monitoring guidance"]
+    capabilities: ["ECG analysis and interpretation", "Cardiovascular risk assessment", "Treatment recommendations for heart conditions", "Post-operative monitoring guidance"],
+    imageUrl: femaleDoctorScrubs, rating: 'New', // Use imported image
+    // Personality-driven properties
+    personality: "Passionate and rhythmic, with a focus on cardiovascular dynamics",
+    speechPattern: "Uses heart metaphors and emphasizes flow and circulation",
+    gradientColors: "from-red-400 to-red-600",
+    animationStyle: "heartbeat",
+    color: "#d93025"
   },
   {
     id: "neuro", name: "NeuroLogic", specialty: "Neurology", 
     description: "Specialist in neurological disorders and brain function.", icon: Brain, category: 'general' as 'general',
-    capabilities: ["Neurological symptom analysis", "MRI and CT scan preliminary review", "Neurological treatment recommendations", "Stroke assessment protocols"]
+    capabilities: ["Neurological symptom analysis", "MRI and CT scan preliminary review", "Neurological treatment recommendations", "Stroke assessment protocols"],
+    imageUrl: maleDoctorLabcoat, rating: 'New', // Use imported image
+    // Personality-driven properties
+    personality: "Detail-oriented and analytical, with a keen eye for subtle patterns",
+    speechPattern: "Structured observations with precise terminology and logical connections",
+    gradientColors: "from-purple-400 to-indigo-600",
+    animationStyle: "pulse",
+    color: "#6366f1"
   },
   {
     id: "path", name: "PathInsight", specialty: "Pathology", 
     description: "Analysis of lab results and diagnostic findings.", icon: Microscope, category: 'research' as AgentCategory,
-    capabilities: ["Laboratory test analysis", "Pathology report interpretation", "Diagnostic testing recommendations", "Tissue sample preliminary assessment"]
+    capabilities: ["Laboratory test analysis", "Pathology report interpretation", "Diagnostic testing recommendations", "Tissue sample preliminary assessment"],
+    imageUrl: femaleSurgeonCap, rating: 'New', // Use imported image
+    // Personality-driven properties
+    personality: "Methodical and evidence-based, with a focus on cellular details",
+    speechPattern: "Structured observations moving from microscopic to diagnostic conclusions",
+    gradientColors: "from-purple-400 to-purple-600",
+    animationStyle: "pulse",
+    color: "#a142f5"
   },
   {
     id: "gen", name: "GeneralMD", specialty: "General Medicine", 
     description: "Comprehensive primary care expertise.", icon: Stethoscope, category: 'general' as 'general',
-    capabilities: ["General health assessments", "Preventive care recommendations", "Common illness diagnosis assistance", "Patient education materials"]
+    capabilities: ["General health assessments", "Preventive care recommendations", "Common illness diagnosis assistance", "Patient education materials"],
+    imageUrl: placeholderSvg, rating: parseFloat((4.7 + Math.random() * 0.3).toFixed(1)), // Use imported image
+    // Personality-driven properties
+    personality: "Compassionate and thorough, with a focus on holistic treatment approaches",
+    speechPattern: "Balances technical terms with patient-friendly explanations",
+    gradientColors: "from-blue-400 to-blue-600",
+    animationStyle: "pulse",
+    color: "#4287f5"
   },
   {
     id: "opth", name: "OptiVision", specialty: "Ophthalmology", 
     description: "Expert in eye conditions and treatments.", icon: Eye, category: 'general' as 'general',
-    capabilities: ["Vision test interpretation", "Eye disease assessment", "Treatment recommendations for eye conditions", "Post-operative care guidance"]
+    capabilities: ["Vision test interpretation", "Eye disease assessment", "Treatment recommendations for eye conditions", "Post-operative care guidance"],
+    imageUrl: placeholderSvg, rating: parseFloat((4.7 + Math.random() * 0.3).toFixed(1)), // Use imported image
+    // Personality-driven properties
+    personality: "Precise and observant, with attention to visual details",
+    speechPattern: "Visual descriptions with clarity and focus on perceptual elements",
+    gradientColors: "from-cyan-400 to-blue-500",
+    animationStyle: "pulse",
+    color: "#42c5f5"
   },
   {
     id: "radiology", name: "RadAnalytics", specialty: "Radiology", 
     description: "Interpretation of medical imaging.", icon: BarChart4, category: 'research' as AgentCategory,
-    capabilities: ["X-ray preliminary analysis", "CT scan review assistance", "MRI interpretation support", "Imaging protocol recommendations"]
+    capabilities: ["X-ray preliminary analysis", "CT scan review assistance", "MRI interpretation support", "Imaging protocol recommendations"],
+    imageUrl: placeholderSvg, rating: parseFloat((4.7 + Math.random() * 0.3).toFixed(1)), // Use imported image
+    // Personality-driven properties
+    personality: "Detail-oriented and analytical, with a keen eye for subtle findings",
+    speechPattern: "Visual descriptions with precise measurements and comparisons",
+    gradientColors: "from-green-400 to-emerald-500",
+    animationStyle: "pulse",
+    color: "#42f59e"
   },
   {
     id: "pharma", name: "PharmExpert", specialty: "Pharmacology", 
     description: "Medication advice and drug interactions.", icon: Pill, category: 'general' as 'general',
-    capabilities: ["Drug interaction checking", "Medication regimen review", "Dosage adjustment recommendations", "Side effect management advice"]
+    capabilities: ["Drug interaction checking", "Medication regimen review", "Dosage adjustment recommendations", "Side effect management advice"],
+    imageUrl: placeholderSvg, rating: parseFloat((4.7 + Math.random() * 0.3).toFixed(1)), // Use imported image
+    // Personality-driven properties
+    personality: "Precise and calculated, with a focus on medication safety",
+    speechPattern: "Technical terminology balanced with clear treatment rationales",
+    gradientColors: "from-pink-400 to-pink-600",
+    animationStyle: "pulse",
+    color: "#f542c8"
   },
 ];
 
-// New Agent Data (Parsed)
+// New Agent Data (Parsed) - Original structure
 const newAgentData = [
   { name: "CardioInsight AI", specialty: "Cardiology", tasks: "Identifies cardiac abnormalities from ECGs, analyzes symptoms indicative of cardiovascular conditions.", icon: HeartPulse, category: 'general' as 'general' },
   { name: "NeuroSense AI", specialty: "Neurology", tasks: "Evaluates neurological symptoms, assists in identifying conditions such as stroke, epilepsy, and Parkinson's disease.", icon: BrainCircuit, category: 'general' as 'general' },
@@ -120,19 +175,53 @@ const newAgentData = [
   { name: "ClinicalTrialMatch AI", specialty: "Clinical Research", tasks: "Matches patients to active clinical trials based on diagnosis, history, and eligibility criteria.", icon: FileSearch, category: 'research' as AgentCategory }
 ];
 
-// Map new data to Agent structure
-const newAgents: Agent[] = newAgentData.map(agentInfo => {
+// Map new data to Agent structure - Re-add imageUrl and rating
+const newAgents: Agent[] = newAgentData.map((agentInfo, index) => {
     const { description, capabilities } = processTasks(agentInfo.tasks);
-    return {
+    const isNewAgent = index < 3; // Consider first 3 of the *new* list as new for rating example
+    
+    // Base agent object
+    const agent: Agent = {
         id: generateId(agentInfo.name),
         name: agentInfo.name,
         specialty: agentInfo.specialty,
         description: description,
         icon: agentInfo.icon || defaultIcon,
-        // color: getNextColor(), // Remove color assignment
         capabilities: capabilities.slice(0, 4),
-        category: agentInfo.category || 'general' 
+        category: agentInfo.category || 'general',
+        imageUrl: placeholderSvg, // Use imported placeholder for new agents
+        rating: isNewAgent ? 'New' : parseFloat((4.7 + Math.random() * 0.3).toFixed(1))
     };
+    
+    // Add personality-driven properties based on specialty
+    if (agentInfo.specialty === "Pulmonology") {
+        // Softer, more readable colors for Pulmonology
+        agent.personality = "Calm and methodical, with a focus on respiratory patterns";
+        agent.speechPattern = "Clear explanations with breathing metaphors and measured pacing";
+        agent.gradientColors = "from-blue-200 to-blue-400"; // Lighter, more readable blue gradient
+        agent.animationStyle = "breathe";
+        agent.color = "#6da4d1"; // Softer blue color
+    } else if (agentInfo.specialty === "Cardiology") {
+        agent.personality = "Energetic and precise, with a focus on cardiac rhythms";
+        agent.speechPattern = "Rhythmic explanations with heart-related metaphors";
+        agent.gradientColors = "from-red-300 to-red-500";
+        agent.animationStyle = "heartbeat";
+        agent.color = "#e05252";
+    } else if (agentInfo.specialty === "Neurology") {
+        agent.personality = "Thoughtful and analytical, with attention to neural connections";
+        agent.speechPattern = "Structured explanations with neural network metaphors";
+        agent.gradientColors = "from-purple-300 to-indigo-500";
+        agent.animationStyle = "pulse";
+        agent.color = "#8a63d2";
+    } else if (agentInfo.specialty === "Oncology") {
+        agent.personality = "Compassionate and thorough, with a focus on precision";
+        agent.speechPattern = "Careful explanations with emphasis on detection and treatment";
+        agent.gradientColors = "from-amber-200 to-amber-400";
+        agent.animationStyle = "pulse";
+        agent.color = "#d4a72c";
+    }
+    
+    return agent;
 });
 
 // Combine existing and new agents
